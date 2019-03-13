@@ -2,6 +2,7 @@
 // Created by Troldal on 2019-03-11.
 //
 
+#include "miniz/miniz.h"
 #include "ZipEntry.h"
 #include <iostream>
 
@@ -17,8 +18,8 @@ Impl::ZipEntry::ZipEntry(const SimpleZip::ZipEntryInfo& info)
 
 Impl::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntryData& data) {
 
-    m_EntryInfo  = CreateInfo(name);
-    m_EntryData  = data;
+    m_EntryInfo = CreateInfo(name);
+    m_EntryData = data;
     m_IsModified = true;
 
 }
@@ -61,7 +62,7 @@ void Impl::ZipEntry::SetData(const std::string& data) {
 
 void Impl::ZipEntry::SetData(const ZipEntryData& data) {
 
-    m_EntryData = data;
+    m_EntryData  = data;
     m_IsModified = true;
 }
 
@@ -149,7 +150,7 @@ SimpleZip::ZipEntryInfo Impl::ZipEntry::CreateInfo(const std::string& name) {
 }
 
 ZipEntry::ZipEntry(Impl::ZipEntry* entry)
-        : m_ZipEntry(entry){
+        : m_ZipEntry(entry) {
 
 }
 
@@ -164,10 +165,12 @@ std::string ZipEntry::GetDataAsString() const {
 }
 
 void ZipEntry::SetData(const std::string& data) {
+
     m_ZipEntry->SetData(data);
 }
 
 void ZipEntry::SetData(const ZipEntryData& data) {
+
     m_ZipEntry->SetData(data);
 }
 

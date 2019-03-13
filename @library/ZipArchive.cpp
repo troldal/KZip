@@ -4,6 +4,7 @@
 
 #include "ZipArchive.h"
 #include "ZipException.h"
+#include "miniz/miniz.h"
 
 #include <algorithm>
 #include <random>
@@ -11,13 +12,22 @@
 #include <cstdio>
 #include <cstddef>
 #include <memory>
+#include <fstream>
 
 using namespace SimpleZip;
 
 ZipArchive::ZipArchive(const std::string& fileName)
         : m_ArchivePath(fileName) {
 
-    Open(fileName);
+    std::ifstream f(fileName.c_str());
+    if (f.good()) {
+        f.close();
+        Open(fileName);
+    }
+    else {
+        f.close();
+        Create(fileName);
+    }
 
 }
 

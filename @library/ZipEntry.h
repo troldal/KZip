@@ -2,8 +2,8 @@
 // Created by Troldal on 2019-03-11.
 //
 
-#ifndef MINIZ_ZIPENTRY_H
-#define MINIZ_ZIPENTRY_H
+#ifndef SIMPLEZIP_ZIPENTRY_H
+#define SIMPLEZIP_ZIPENTRY_H
 
 // ===== Standard Library Includes
 #include <string>
@@ -200,7 +200,7 @@ namespace SimpleZip {
         /**
          * @brief Constructor. Creates a new ZipEntry with the given ZipEntryInfo parameter. This is only used for creating
          * a ZipEntry for an entry already present in the ZipArchive.
-         * @param info
+         * @param entry
          */
         explicit ZipEntry(Impl::ZipEntry* entry);
 
@@ -329,4 +329,4 @@ namespace SimpleZip {
 
 }  // namespace SimpleZip
 
-#endif //MINIZ_ZIPENTRY_H
+#endif //SIMPLEZIP_ZIPENTRY_H

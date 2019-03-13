@@ -1,9 +1,30 @@
-//
-// Created by Troldal on 2019-03-10.
-//
+/*
+    MIT License
 
-#ifndef MINIZ_ZIPARCHIVE_H
-#define MINIZ_ZIPARCHIVE_H
+    Copyright (c) 2019 Kenneth Troldal Balslev
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+ */
+
+#ifndef SIMPLEZIP_ZIPARCHIVE_H
+#define SIMPLEZIP_ZIPARCHIVE_H
 
 #include <string>
 #include <vector>
@@ -13,6 +34,9 @@
 
 namespace SimpleZip {
 
+    /**
+     * @brief
+     */
     class ZipArchive {
 
     public:
@@ -181,7 +205,7 @@ namespace SimpleZip {
         static std::string GenerateRandomName();
 
     private:
-        mz_zip_archive m_Archive     = mz_zip_archive(); /**< */
+        mz_zip_archive m_Archive = mz_zip_archive(); /**< */
         std::string    m_ArchivePath = ""; /**< */
         bool           m_IsOpen      = false; /**< */
 
@@ -190,4 +214,4 @@ namespace SimpleZip {
     };
 }  // namespace SimpleZip
 
-#endif //MINIZ_ZIPARCHIVE_H
+#endif //SIMPLEZIP_ZIPARCHIVE_H

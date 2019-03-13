@@ -296,7 +296,7 @@ namespace SimpleZip {
         inline ~ZipExceptionWriteCallbackFailed() override = default;
     };
 
-}  // namespace OpenXLSX
+} // namespace SimpleZip
 
 
 #endif //MINIZ_ZIPEXCEPTION_H
