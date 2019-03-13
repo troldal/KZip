@@ -31,9 +31,11 @@ set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-point
 #=======================================================================================================================
 add_subdirectory(@library)
 add_subdirectory(@examples)
+add_subdirectory(@tests)
 
 #=======================================================================================================================
 # Define internal dependencies
 #=======================================================================================================================
 add_dependencies(Example1 SimpleZip)
+add_dependencies(SimpleZipTest SimpleZip)
 

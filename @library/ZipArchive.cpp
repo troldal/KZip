@@ -64,7 +64,7 @@ void ZipArchive::Open(const std::string& fileName) {
     }
 
     // ===== Remove entries with identical names. The newest entries will be retained.
-    auto isEqual = [](const ZipEntry& a, const ZipEntry& b) { return a.Filename() == b.Filename(); };
+    auto isEqual = [](const Impl::ZipEntry& a, const Impl::ZipEntry& b) { return a.Filename() == b.Filename(); };
     std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
     m_ZipEntries.erase(std::unique(m_ZipEntries.begin(), m_ZipEntries.end(), isEqual), m_ZipEntries.end());
     std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
@@ -183,14 +183,14 @@ void ZipArchive::SaveAs(std::string filename) {
 
 void ZipArchive::DeleteEntry(const std::string& name) {
 
-    m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const ZipEntry& entry) {
+    m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     }), m_ZipEntries.end());
 }
 
-ZipEntry& ZipArchive::GetEntry(const std::string& name) {
+ZipEntry ZipArchive::GetEntry(const std::string& name) {
 
-    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const ZipEntry& entry) {
+    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
@@ -204,35 +204,35 @@ ZipEntry& ZipArchive::GetEntry(const std::string& name) {
     if (!data)
         ThrowException(m_Archive.m_last_error, "Error extracting archive entry.");
 
-    result->m_EntryData = std::vector<std::byte>(data.get(), data.get() + datasize);
+    result->SetData(std::vector<std::byte>(data.get(), data.get() + datasize));
 
-    return *result;
+    return ZipEntry(&*result);
 }
 
 // TODO: The two AddEntry functions are completely identical. Can something be done?
 
-ZipEntry& ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data) {
+ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data) {
 
-    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const ZipEntry& entry) {
+    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
     if (result != m_ZipEntries.end())
-        return *result;
+        return ZipEntry(&*result);
 
-    return m_ZipEntries.emplace_back(ZipEntry(name, data));
+    return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
 }
 
-ZipEntry& ZipArchive::AddEntry(const std::string& name, const std::string& data) {
+ZipEntry ZipArchive::AddEntry(const std::string& name, const std::string& data) {
 
-    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const ZipEntry& entry) {
+    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
     if (result != m_ZipEntries.end())
-        return *result;
+        return ZipEntry(&*result);
 
-    return m_ZipEntries.emplace_back(ZipEntry(name, data));
+    return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
 }
 
 void ZipArchive::ThrowException(mz_zip_error error, const std::string& errorString) {

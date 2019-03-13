@@ -147,7 +147,7 @@ namespace SimpleZip {
          * @param name
          * @return
          */
-        ZipEntry& GetEntry(const std::string& name);
+        ZipEntry GetEntry(const std::string& name);
 
         /**
          * @brief
@@ -155,7 +155,7 @@ namespace SimpleZip {
          * @param data
          * @return
          */
-        ZipEntry& AddEntry(const std::string& name, const ZipEntryData& data);
+        ZipEntry AddEntry(const std::string& name, const ZipEntryData& data);
 
         /**
          * @brief
@@ -163,7 +163,7 @@ namespace SimpleZip {
          * @param data
          * @return
          */
-        ZipEntry& AddEntry(const std::string& name, const std::string& data);
+        ZipEntry AddEntry(const std::string& name, const std::string& data);
 
     private:
 
@@ -185,7 +185,7 @@ namespace SimpleZip {
         std::string    m_ArchivePath = ""; /**< */
         bool           m_IsOpen      = false; /**< */
 
-        std::vector<ZipEntry> m_ZipEntries; /**< */
+        std::vector<Impl::ZipEntry> m_ZipEntries = std::vector<Impl::ZipEntry>(); /**< */
 
     };
 }  // namespace SimpleZip

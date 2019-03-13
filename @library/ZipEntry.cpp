@@ -5,15 +5,17 @@
 #include "ZipEntry.h"
 #include <iostream>
 
-uint32_t SimpleZip::ZipEntry::s_LatestIndex = 0;
+using namespace SimpleZip;
 
-SimpleZip::ZipEntry::ZipEntry(const SimpleZip::ZipEntryInfo& info)
+uint32_t Impl::ZipEntry::s_LatestIndex = 0;
+
+Impl::ZipEntry::ZipEntry(const SimpleZip::ZipEntryInfo& info)
         : m_EntryInfo(info) {
 
     if (info.m_file_index > s_LatestIndex) s_LatestIndex = info.m_file_index;
 }
 
-SimpleZip::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntryData& data) {
+Impl::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntryData& data) {
 
     m_EntryInfo  = CreateInfo(name);
     m_EntryData  = data;
@@ -21,7 +23,7 @@ SimpleZip::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntry
 
 }
 
-SimpleZip::ZipEntry::ZipEntry(const std::string& name, const std::string& data) {
+Impl::ZipEntry::ZipEntry(const std::string& name, const std::string& data) {
 
     m_EntryInfo = CreateInfo(name);
     m_EntryData.reserve(data.size());
@@ -32,12 +34,12 @@ SimpleZip::ZipEntry::ZipEntry(const std::string& name, const std::string& data) 
     m_IsModified = true;
 }
 
-SimpleZip::ZipEntryData SimpleZip::ZipEntry::GetData() const {
+ZipEntryData Impl::ZipEntry::GetData() const {
 
     return m_EntryData;
 }
 
-std::string SimpleZip::ZipEntry::GetDataAsString() const {
+std::string Impl::ZipEntry::GetDataAsString() const {
 
     std::string result;
     for (auto& ch : m_EntryData)
@@ -46,7 +48,7 @@ std::string SimpleZip::ZipEntry::GetDataAsString() const {
     return result;
 }
 
-void SimpleZip::ZipEntry::SetData(const std::string& data) {
+void Impl::ZipEntry::SetData(const std::string& data) {
 
     ZipEntryData result;
 
@@ -57,62 +59,68 @@ void SimpleZip::ZipEntry::SetData(const std::string& data) {
     m_IsModified = true;
 }
 
-uint32_t SimpleZip::ZipEntry::Index() const {
+void Impl::ZipEntry::SetData(const ZipEntryData& data) {
+
+    m_EntryData = data;
+    m_IsModified = true;
+}
+
+uint32_t Impl::ZipEntry::Index() const {
 
     return m_EntryInfo.m_file_index;
 }
 
-uint64_t SimpleZip::ZipEntry::CompressedSize() const {
+uint64_t Impl::ZipEntry::CompressedSize() const {
 
     return m_EntryInfo.m_comp_size;
 }
 
-uint64_t SimpleZip::ZipEntry::UncompressedSize() const {
+uint64_t Impl::ZipEntry::UncompressedSize() const {
 
     return m_EntryInfo.m_uncomp_size;
 }
 
-bool SimpleZip::ZipEntry::IsDirectory() const {
+bool Impl::ZipEntry::IsDirectory() const {
 
     return m_EntryInfo.m_is_directory;
 }
 
-bool SimpleZip::ZipEntry::IsEncrypted() const {
+bool Impl::ZipEntry::IsEncrypted() const {
 
     return m_EntryInfo.m_is_encrypted;
 }
 
-bool SimpleZip::ZipEntry::IsSupported() const {
+bool Impl::ZipEntry::IsSupported() const {
 
     return m_EntryInfo.m_is_supported;
 }
 
-std::string SimpleZip::ZipEntry::Filename() const {
+std::string Impl::ZipEntry::Filename() const {
 
     return m_EntryInfo.m_filename;
 }
 
-std::string SimpleZip::ZipEntry::Comment() const {
+std::string Impl::ZipEntry::Comment() const {
 
     return m_EntryInfo.m_comment;
 }
 
-const time_t& SimpleZip::ZipEntry::Time() const {
+const time_t& Impl::ZipEntry::Time() const {
 
     return m_EntryInfo.m_time;
 }
 
-bool SimpleZip::ZipEntry::IsModified() const {
+bool Impl::ZipEntry::IsModified() const {
 
     return m_IsModified;
 }
 
-uint32_t SimpleZip::ZipEntry::GetNewIndex() {
+uint32_t Impl::ZipEntry::GetNewIndex() {
 
     return ++s_LatestIndex;
 }
 
-SimpleZip::ZipEntryInfo SimpleZip::ZipEntry::CreateInfo(const std::string& name) {
+SimpleZip::ZipEntryInfo Impl::ZipEntry::CreateInfo(const std::string& name) {
 
     ZipEntryInfo info;
 
@@ -138,4 +146,77 @@ SimpleZip::ZipEntryInfo SimpleZip::ZipEntry::CreateInfo(const std::string& name)
     strcpy(info.m_comment, "");
 
     return info;
+}
+
+ZipEntry::ZipEntry(Impl::ZipEntry* entry)
+        : m_ZipEntry(entry){
+
+}
+
+ZipEntryData ZipEntry::GetData() const {
+
+    return m_ZipEntry->GetData();
+}
+
+std::string ZipEntry::GetDataAsString() const {
+
+    return m_ZipEntry->GetDataAsString();
+}
+
+void ZipEntry::SetData(const std::string& data) {
+    m_ZipEntry->SetData(data);
+}
+
+void ZipEntry::SetData(const ZipEntryData& data) {
+    m_ZipEntry->SetData(data);
+}
+
+uint32_t ZipEntry::Index() const {
+
+    return m_ZipEntry->Index();
+}
+
+uint64_t ZipEntry::CompressedSize() const {
+
+    return m_ZipEntry->CompressedSize();
+}
+
+uint64_t ZipEntry::UncompressedSize() const {
+
+    return m_ZipEntry->UncompressedSize();
+}
+
+bool ZipEntry::IsDirectory() const {
+
+    return m_ZipEntry->IsDirectory();
+}
+
+bool ZipEntry::IsEncrypted() const {
+
+    return m_ZipEntry->IsEncrypted();
+}
+
+bool ZipEntry::IsSupported() const {
+
+    return m_ZipEntry->IsSupported();
+}
+
+std::string ZipEntry::Filename() const {
+
+    return m_ZipEntry->Filename();
+}
+
+std::string ZipEntry::Comment() const {
+
+    return m_ZipEntry->Comment();
+}
+
+const time_t& ZipEntry::Time() const {
+
+    return m_ZipEntry->Time();
+}
+
+bool ZipEntry::IsModified() const {
+
+    return m_ZipEntry->IsModified();
 }

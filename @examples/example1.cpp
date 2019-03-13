@@ -26,4 +26,16 @@ int main() {
     for (auto& item : arch.GetEntryNames())
         cout << item << endl;
 
+    for (int i = 0; i < 25; ++i)
+        arch.DeleteEntry(to_string(i) + ".txt");
+
+    arch.Save();
+
+    cout << "This .zip archive has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
+    for (auto& item : arch.GetEntryNames())
+        cout << item << endl;
+
+    auto entry = arch.GetEntry("49.txt");
+    cout << entry.GetDataAsString() << endl;
+
 }
