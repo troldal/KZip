@@ -29,10 +29,6 @@ int main() {
 
     arch.Save();
 
-//    cout << "This .zip archive has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
-//    for (auto& item : arch.GetEntryNames())
-//        cout << item << endl;
-
     cout << "Deleting 25 files from archive..." << endl;
     for (int i = 0; i < 25; ++i) {
         if (i < 10)
