@@ -129,6 +129,22 @@ namespace SimpleZip {
          * @param includeFiles
          * @return
          */
+        std::vector<ZipEntryMetaData> GetMetaData(bool includeDirs = true, bool includeFiles = true);
+
+        /**
+         * @brief
+         * @param dir
+         * @param includeDirs
+         * @param includeFiles
+         * @return
+         */
+        std::vector<ZipEntryMetaData> GetMetaDataInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true);
+        /**
+         * @brief
+         * @param includeDirs
+         * @param includeFiles
+         * @return
+         */
         int GetNumEntries(bool includeDirs = true, bool includeFiles = true);
 
         /**

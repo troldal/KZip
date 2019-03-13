@@ -21,6 +21,20 @@ namespace SimpleZip {
     using ZipEntryInfo = mz_zip_archive_file_stat;
     using ZipEntryData = std::vector<std::byte>;
 
+    struct ZipEntryMetaData {
+        ZipEntryMetaData(const ZipEntryInfo& info);
+
+        uint32_t Index;
+        uint64_t CompressedSize;
+        uint64_t UncompressedSize;
+        bool IsDirectory;
+        bool IsEncrypted;
+        bool IsSupported;
+        std::string Filename;
+        std::string Comment;
+        const time_t Time;
+    };
+
     namespace Impl {
         /**
          * @brief
@@ -183,13 +197,27 @@ namespace SimpleZip {
              */
             bool IsModified() const;
 
-            static uint32_t s_LatestIndex;
+            static uint32_t s_LatestIndex; /**< */
+
+            /**
+             * @brief
+             * @return
+             */
             static uint32_t GetNewIndex();
+
+            /**
+             * @brief
+             * @param name
+             * @return
+             */
             static ZipEntryInfo CreateInfo(const std::string& name);
 
         };
     }  // namespace Impl
 
+    /**
+     * @brief
+     */
     class ZipEntry {
         friend class ZipArchive;
 
@@ -321,9 +349,13 @@ namespace SimpleZip {
 
     private:
 
+        /**
+         * @brief
+         * @return
+         */
         bool IsModified() const;
 
-        Impl::ZipEntry* m_ZipEntry;
+        Impl::ZipEntry* m_ZipEntry;  /**< */
 
     };
 

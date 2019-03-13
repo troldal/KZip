@@ -126,6 +126,40 @@ std::vector<std::string> ZipArchive::GetEntryNamesInDir(const std::string& dir, 
     return result;
 }
 
+std::vector<ZipEntryMetaData> ZipArchive::GetMetaData(bool includeDirs, bool includeFiles) {
+
+    std::vector<ZipEntryMetaData> result;
+    for (auto& item : m_ZipEntries) {
+        if (includeDirs && item.IsDirectory()) {
+            result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+            continue;
+        }
+
+        if (includeFiles && !item.IsDirectory()) {
+            result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+            continue;
+        }
+    }
+
+    return result;
+}
+
+std::vector<ZipEntryMetaData> ZipArchive::GetMetaDataInDir(const std::string& dir, bool includeDirs, bool includeFiles) {
+
+    auto result = GetMetaData(includeDirs, includeFiles);
+
+/*    if (dir.empty()) return result;
+
+    auto theDir = dir;
+    if (theDir.back() != '/') theDir += '/';
+
+    result.erase(std::remove_if(result.begin(), result.end(), [&](const ZipEntryMetaData& entry) {
+        return entry.Filename.substr(0, theDir.size()) != theDir || entry.Filename == theDir;
+    }), result.end());*/
+
+    return result;
+}
+
 int ZipArchive::GetNumEntries(bool includeDirs, bool includeFiles) {
 
     return GetEntryNames(includeDirs, includeFiles).size();

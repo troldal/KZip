@@ -10,6 +10,19 @@ using namespace SimpleZip;
 
 uint32_t Impl::ZipEntry::s_LatestIndex = 0;
 
+ZipEntryMetaData::ZipEntryMetaData(const ZipEntryInfo& info)
+        : Index(info.m_file_index),
+          CompressedSize(info.m_comp_size),
+          UncompressedSize(info.m_uncomp_size),
+          IsDirectory(info.m_is_directory),
+          IsEncrypted(info.m_is_encrypted),
+          IsSupported(info.m_is_supported),
+          Filename(info.m_filename),
+          Comment(info.m_comment),
+          Time(info.m_time) {
+
+}
+
 Impl::ZipEntry::ZipEntry(const SimpleZip::ZipEntryInfo& info)
         : m_EntryInfo(info) {
 

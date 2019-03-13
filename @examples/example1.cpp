@@ -14,9 +14,12 @@ static const string str = "MISSION CONTROL I wouldn't worry too much about the c
 
 int main() {
 
+    cout << "Creating new archive..." << endl;
+
     SimpleZip::ZipArchive arch;
     arch.Create("./TestArchive.zip");
 
+    cout << "Adding 50 files to archive..." << endl;
     for (int i = 0; i < 50; ++i) {
         if (i < 10)
             arch.AddEntry("0" + to_string(i) + ".txt", "this is test 0" + to_string(i) + ": " + str);
@@ -26,10 +29,11 @@ int main() {
 
     arch.Save();
 
-    cout << "This .zip archive has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
-    for (auto& item : arch.GetEntryNames())
-        cout << item << endl;
+//    cout << "This .zip archive has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
+//    for (auto& item : arch.GetEntryNames())
+//        cout << item << endl;
 
+    cout << "Deleting 25 files from archive..." << endl;
     for (int i = 0; i < 25; ++i) {
         if (i < 10)
             arch.DeleteEntry("0" + to_string(i) + ".txt");
@@ -39,10 +43,21 @@ int main() {
 
     arch.Save();
 
-    cout << "This .zip archive has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
-    for (auto& item : arch.GetEntryNames())
-        cout << item << endl;
+    cout << "This .zip archive now has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
+    cout << "Index:\tName:\t\tSize (C):\tSize (U):\tDate:" << endl;
+    cout << "====================================================================" << endl;
+    for (auto& item : arch.GetMetaData()) {
+        std::string time = std::ctime(&item.Time);
+        time = time.substr(0, time.length() - 1);
 
+        cout << (item.Index < 10 ? "0" + to_string(item.Index) : to_string(item.Index)) << "\t\t"
+             << item.Filename << "\t\t"
+             << item.CompressedSize << "\t\t\t"
+             << item.UncompressedSize << "\t\t\t"
+             << time << endl;
+    }
+
+    cout << endl << "Contents of file \"49.txt\":" << endl;
     auto entry = arch.GetEntry("49.txt");
     cout << entry.GetDataAsString() << endl;
 
