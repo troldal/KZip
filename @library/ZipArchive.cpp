@@ -26,6 +26,25 @@ ZipArchive::~ZipArchive() {
     Close();
 }
 
+void ZipArchive::Create(const std::string& fileName) {
+
+    // ===== Prepare an archive file;
+    mz_zip_archive archive = mz_zip_archive();
+    mz_zip_writer_init_file(&archive, fileName.c_str(), 0);
+
+    // ===== Finalize and close the temporary archive
+    mz_zip_writer_finalize_archive(&archive);
+    mz_zip_writer_end(&archive);
+
+    // ===== Validate the temporary file
+    mz_zip_error errordata;
+    if (!mz_zip_validate_file_archive(fileName.c_str(), 0, &errordata))
+        ThrowException(errordata, "Archive creation failed!");
+
+    Open(fileName);
+
+}
+
 void ZipArchive::Open(const std::string& fileName) {
 
     // ===== Open the archive file for reading.
@@ -200,8 +219,8 @@ ZipEntry& ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data
 
     if (result != m_ZipEntries.end())
         return *result;
-    else
-        return m_ZipEntries.emplace_back(ZipEntry(name, data));
+
+    return m_ZipEntries.emplace_back(ZipEntry(name, data));
 }
 
 ZipEntry& ZipArchive::AddEntry(const std::string& name, const std::string& data) {
@@ -212,8 +231,8 @@ ZipEntry& ZipArchive::AddEntry(const std::string& name, const std::string& data)
 
     if (result != m_ZipEntries.end())
         return *result;
-    else
-        return m_ZipEntries.emplace_back(ZipEntry(name, data));
+
+    return m_ZipEntries.emplace_back(ZipEntry(name, data));
 }
 
 void ZipArchive::ThrowException(mz_zip_error error, const std::string& errorString) {

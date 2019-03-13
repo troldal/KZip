@@ -23,7 +23,7 @@ SimpleZip::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntry
 
 SimpleZip::ZipEntry::ZipEntry(const std::string& name, const std::string& data) {
 
-    m_EntryInfo  = CreateInfo(name);
+    m_EntryInfo = CreateInfo(name);
     m_EntryData.reserve(data.size());
 
     for (auto& ch : data)

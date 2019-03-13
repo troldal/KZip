@@ -63,6 +63,12 @@ namespace SimpleZip {
          * @brief
          * @param fileName
          */
+        void Create(const std::string& fileName);
+
+        /**
+         * @brief
+         * @param fileName
+         */
         void Open(const std::string& fileName);
 
         /**
@@ -181,10 +187,7 @@ namespace SimpleZip {
 
         std::vector<ZipEntry> m_ZipEntries; /**< */
 
-
-
     };
-
-}
+}  // namespace SimpleZip
 
 #endif //MINIZ_ZIPARCHIVE_H

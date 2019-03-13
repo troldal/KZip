@@ -177,6 +177,6 @@ namespace SimpleZip {
         static ZipEntryInfo CreateInfo(const std::string& name);
 
     };
-}
+}  // namespace SimpleZip
 
 #endif //MINIZ_ZIPENTRY_H
