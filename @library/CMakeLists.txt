@@ -45,16 +45,31 @@ set(SIMPLEZIP_IMPL_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.c)
 
 #=======================================================================================================================
-# Build OpenXLSX library
+# Build SimpleZip library
 #=======================================================================================================================
-include(GenerateExportHeader)
-generate_export_header(SimpleZip)
+#include(GenerateExportHeader)
+#generate_export_header(SimpleZip)
 target_sources(SimpleZip
         PRIVATE
-        ${SIMPLEZIP_IMPL_SOURCES})
+            ${SIMPLEZIP_IMPL_SOURCES})
+
+# ===== Copy header files to (staged) install directory ===== #
+file(REMOVE_RECURSE ${SIMPLEZIP_INSTALLDIR}/include/)
+file(COPY
+        ${CMAKE_CURRENT_LIST_DIR}/ZipArchive.h
+        ${CMAKE_CURRENT_LIST_DIR}/ZipEntry.h
+        ${CMAKE_CURRENT_LIST_DIR}/ZipException.h
+        ${CMAKE_CURRENT_LIST_DIR}/SimpleZip.h
+     DESTINATION
+        ${SIMPLEZIP_INSTALLDIR}/include/SimpleZip/)
+
+file(COPY
+        ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.h
+     DESTINATION
+        ${SIMPLEZIP_INSTALLDIR}/include/SimpleZip/miniz)
 
 #=======================================================================================================================
-# Install OpenXLSX Library
+# Install SimpleZip Library
 #=======================================================================================================================
 #include(GNUInstallDirs)
 #install(TARGETS OpenXLSX

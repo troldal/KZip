@@ -3,6 +3,10 @@
 #=======================================================================================================================
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 project(SimpleZip C CXX)
+set(SIMPLEZIP_INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/install)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/bin)
 #set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 #set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 

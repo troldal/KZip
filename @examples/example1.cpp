@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <ctime>
 #include <chrono>
-#include "../@library/ZipArchive.h"
+#include <SimpleZip/SimpleZip.h>
 
 using namespace std;
 
@@ -17,8 +17,12 @@ int main() {
     SimpleZip::ZipArchive arch;
     arch.Create("./TestArchive.zip");
 
-    for (int i = 0; i < 50; ++i)
-        arch.AddEntry(to_string(i) + ".txt", "this is test " + to_string(i) + ": " + str);
+    for (int i = 0; i < 50; ++i) {
+        if (i < 10)
+            arch.AddEntry("0" + to_string(i) + ".txt", "this is test 0" + to_string(i) + ": " + str);
+        else
+            arch.AddEntry(to_string(i) + ".txt", "this is test " + to_string(i) + ": " + str);
+    }
 
     arch.Save();
 
@@ -26,8 +30,12 @@ int main() {
     for (auto& item : arch.GetEntryNames())
         cout << item << endl;
 
-    for (int i = 0; i < 25; ++i)
-        arch.DeleteEntry(to_string(i) + ".txt");
+    for (int i = 0; i < 25; ++i) {
+        if (i < 10)
+            arch.DeleteEntry("0" + to_string(i) + ".txt");
+        else
+            arch.DeleteEntry(to_string(i) + ".txt");
+    }
 
     arch.Save();
 
