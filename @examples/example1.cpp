@@ -6,7 +6,8 @@
 #include <cstdio>
 #include <ctime>
 #include <chrono>
-#include <SimpleZip/SimpleZip.h>
+#include <Zippy/Zippy.h>
+#include "tableprinter.h"
 
 using namespace std;
 
@@ -16,7 +17,7 @@ int main() {
 
     cout << "Creating new archive..." << endl;
 
-    SimpleZip::ZipArchive arch;
+    Zippy::ZipArchive arch;
     arch.Create("./TestArchive.zip");
 
     cout << "Adding 50 files to archive..." << endl;
@@ -39,19 +40,26 @@ int main() {
 
     arch.Save();
 
-    cout << "This .zip archive now has " << arch.GetNumEntries() << " entries. They are:" << endl << endl;
-    cout << "Index:\tName:\t\tSize (C):\tSize (U):\tDate:" << endl;
-    cout << "====================================================================" << endl;
+    cout << "Contents of archive:" << endl;
+    TablePrinter::TablePrinter tp(&std::cout);
+    tp.AddColumn("Index", 8);
+    tp.AddColumn("Name", 8);
+    tp.AddColumn("Compressed Size:", 20);
+    tp.AddColumn("Uncompressed Size:", 20);
+    tp.AddColumn("Date Stamp:", 25);
+
+    tp.PrintHeader();
     for (auto& item : arch.GetMetaData()) {
         std::string time = std::ctime(&item.Time);
         time = time.substr(0, time.length() - 1);
 
-        cout << (item.Index < 10 ? "0" + to_string(item.Index) : to_string(item.Index)) << "\t\t"
-             << item.Filename << "\t\t"
-             << item.CompressedSize << "\t\t\t"
-             << item.UncompressedSize << "\t\t\t"
-             << time << endl;
+        tp << (item.Index < 10 ? "0" + to_string(item.Index) : to_string(item.Index))
+           << item.Filename
+           << item.CompressedSize
+           << item.UncompressedSize
+           << time;
     }
+    tp.PrintFooter();
 
     cout << endl << "Contents of file \"49.txt\":" << endl;
     auto entry = arch.GetEntry("49.txt");

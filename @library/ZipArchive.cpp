@@ -14,7 +14,7 @@
 #include <memory>
 #include <fstream>
 
-using namespace SimpleZip;
+using namespace Zippy;
 
 ZipArchive::ZipArchive(const std::string& fileName)
         : m_ArchivePath(fileName) {

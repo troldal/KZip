@@ -23,8 +23,8 @@
 
  */
 
-#ifndef SIMPLEZIP_ZIPARCHIVE_H
-#define SIMPLEZIP_ZIPARCHIVE_H
+#ifndef Zippy_ZIPARCHIVE_H
+#define Zippy_ZIPARCHIVE_H
 
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@
 #include "miniz/miniz.h"
 #include "ZipEntry.h"
 
-namespace SimpleZip {
+namespace Zippy {
 
     /**
      * @brief
@@ -228,6 +228,6 @@ namespace SimpleZip {
         std::vector<Impl::ZipEntry> m_ZipEntries = std::vector<Impl::ZipEntry>(); /**< */
 
     };
-}  // namespace SimpleZip
+}  // namespace Zippy
 
-#endif //SIMPLEZIP_ZIPARCHIVE_H
+#endif //Zippy_ZIPARCHIVE_H

@@ -1,4 +1,4 @@
-# SimpleZip
+# Zippy
 A simple C++ wrapper around the "miniz" zip library.
 
 ## Introduction
@@ -11,7 +11,7 @@ The 'miniz' library (https://github.com/richgel999/miniz) has a proven track rec
 There is another initiative for wrapping miniz in C++, callec miniz-cpp (https://github.com/tfussell/miniz-cpp), used as part of the XLNT library (https://github.com/tfussell/xlnt), but it doesn't fully satisfy the requirements I have, so I decided to make my own.
 
 ## Ambition
-My ambition for SimpleZip is to enable reading, writing and modification of existing zip archives, as well as creation of new archives.
+My ambition for Zippy is to enable reading, writing and modification of existing zip archives, as well as creation of new archives.
 
 Some of the features are not natively available in miniz, so some workarounds has been made (e.g. deletion of archive entries).
 

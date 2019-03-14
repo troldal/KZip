@@ -6,7 +6,7 @@
 #include "ZipEntry.h"
 #include <iostream>
 
-using namespace SimpleZip;
+using namespace Zippy;
 
 uint32_t Impl::ZipEntry::s_LatestIndex = 0;
 
@@ -23,13 +23,13 @@ ZipEntryMetaData::ZipEntryMetaData(const ZipEntryInfo& info)
 
 }
 
-Impl::ZipEntry::ZipEntry(const SimpleZip::ZipEntryInfo& info)
+Impl::ZipEntry::ZipEntry(const Zippy::ZipEntryInfo& info)
         : m_EntryInfo(info) {
 
     if (info.m_file_index > s_LatestIndex) s_LatestIndex = info.m_file_index;
 }
 
-Impl::ZipEntry::ZipEntry(const std::string& name, const SimpleZip::ZipEntryData& data) {
+Impl::ZipEntry::ZipEntry(const std::string& name, const Zippy::ZipEntryData& data) {
 
     m_EntryInfo = CreateInfo(name);
     m_EntryData = data;
@@ -134,7 +134,7 @@ uint32_t Impl::ZipEntry::GetNewIndex() {
     return ++s_LatestIndex;
 }
 
-SimpleZip::ZipEntryInfo Impl::ZipEntry::CreateInfo(const std::string& name) {
+Zippy::ZipEntryInfo Impl::ZipEntry::CreateInfo(const std::string& name) {
 
     ZipEntryInfo info;
 

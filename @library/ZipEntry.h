@@ -2,8 +2,8 @@
 // Created by Troldal on 2019-03-11.
 //
 
-#ifndef SIMPLEZIP_ZIPENTRY_H
-#define SIMPLEZIP_ZIPENTRY_H
+#ifndef Zippy_ZIPENTRY_H
+#define Zippy_ZIPENTRY_H
 
 // ===== Standard Library Includes
 #include <string>
@@ -12,7 +12,7 @@
 // ===== Other Includes
 #include "miniz/miniz.h"
 
-namespace SimpleZip {
+namespace Zippy {
 
     class ZipArchive;
     class ZipEntry;
@@ -40,8 +40,8 @@ namespace SimpleZip {
          * @brief
          */
         class ZipEntry {
-            friend class SimpleZip::ZipArchive;
-            friend class SimpleZip::ZipEntry;
+            friend class Zippy::ZipArchive;
+            friend class Zippy::ZipEntry;
 
         public:
 
@@ -359,6 +359,6 @@ namespace SimpleZip {
 
     };
 
-}  // namespace SimpleZip
+}  // namespace Zippy
 
-#endif //SIMPLEZIP_ZIPENTRY_H
+#endif //Zippy_ZIPENTRY_H

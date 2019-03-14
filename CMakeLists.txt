@@ -2,8 +2,8 @@
 # Preamble
 #=======================================================================================================================
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
-project(SimpleZip C CXX)
-set(SIMPLEZIP_INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/install)
+project(Zippy C CXX)
+set(Zippy_INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/install)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/bin)
@@ -15,7 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/bin)
 #=======================================================================================================================
 set(PROJECT_VENDOR "Kenneth Troldal Balslev")
 set(PROJECT_CONTACT "kenneth.balslev@gmail.com")
-set(PROJECT_URL "https://github.com/troldal/SimpleZip")
+set(PROJECT_URL "https://github.com/troldal/Zippy")
 set(PROJECT_DESCRIPTION "A C++17 wrapper around the 'miniz' zip file library")
 
 #=======================================================================================================================
@@ -41,6 +41,6 @@ add_subdirectory(@doxy)
 #=======================================================================================================================
 # Define internal dependencies
 #=======================================================================================================================
-add_dependencies(Example1 SimpleZip)
-add_dependencies(SimpleZipTest SimpleZip)
+add_dependencies(Example1 Zippy)
+add_dependencies(ZippyTest Zippy)
 

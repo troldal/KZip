@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 
-namespace SimpleZip {
+namespace Zippy {
     class ZipException : public std::runtime_error {
     public:
         inline explicit ZipException(const std::string& err)
@@ -296,7 +296,7 @@ namespace SimpleZip {
         inline ~ZipExceptionWriteCallbackFailed() override = default;
     };
 
-} // namespace SimpleZip
+} // namespace Zippy
 
 
 #endif //MINIZ_ZIPEXCEPTION_H

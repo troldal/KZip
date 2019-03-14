@@ -1,7 +1,7 @@
-add_executable(SimpleZipTest "")
-target_sources(SimpleZipTest
+add_executable(ZippyTest "")
+target_sources(ZippyTest
         PRIVATE
-            SimpleZipTest.cpp)
+            ZippyTest.cpp)
 
-target_link_libraries(SimpleZipTest PUBLIC SimpleZip)
-target_include_directories(SimpleZipTest PRIVATE ${CMAKE_CURRENT_LIST_DIR}/catch2)
+target_link_libraries(ZippyTest PUBLIC Zippy)
+target_include_directories(ZippyTest PRIVATE ${CMAKE_CURRENT_LIST_DIR}/catch2)
