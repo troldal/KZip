@@ -17,35 +17,43 @@
 namespace Catch {
 
     struct AutomakeReporter : StreamingReporterBase<AutomakeReporter> {
-        AutomakeReporter( ReporterConfig const& _config )
-          :   StreamingReporterBase( _config )
-        {}
+        AutomakeReporter(ReporterConfig const& _config)
+                : StreamingReporterBase(_config) {
+        }
 
         ~AutomakeReporter() override;
 
         static std::string getDescription() {
+
             return "Reports test results in the format of Automake .trs files";
         }
 
-        void assertionStarting( AssertionInfo const& ) override {}
+        void assertionStarting(AssertionInfo const&) override {
+        }
 
-        bool assertionEnded( AssertionStats const& /*_assertionStats*/ ) override { return true; }
+        bool assertionEnded(AssertionStats const& /*_assertionStats*/ ) override {
 
-        void testCaseEnded( TestCaseStats const& _testCaseStats ) override {
+            return true;
+        }
+
+        void testCaseEnded(TestCaseStats const& _testCaseStats) override {
             // Possible values to emit are PASS, XFAIL, SKIP, FAIL, XPASS and ERROR.
             stream << ":test-result: ";
             if (_testCaseStats.totals.assertions.allPassed()) {
                 stream << "PASS";
-            } else if (_testCaseStats.totals.assertions.allOk()) {
+            }
+            else if (_testCaseStats.totals.assertions.allOk()) {
                 stream << "XFAIL";
-            } else {
+            }
+            else {
                 stream << "FAIL";
             }
             stream << ' ' << _testCaseStats.testInfo.name << '\n';
-            StreamingReporterBase::testCaseEnded( _testCaseStats );
+            StreamingReporterBase::testCaseEnded(_testCaseStats);
         }
 
-        void skipTest( TestCaseInfo const& testInfo ) override {
+        void skipTest(TestCaseInfo const& testInfo) override {
+
             stream << ":test-result: SKIP " << testInfo.name << '\n';
         }
 

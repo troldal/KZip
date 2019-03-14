@@ -215,9 +215,11 @@ enum {
 
 /* Heap allocation callbacks.
 Note that mz_alloc_func parameter types purpsosely differ from zlib's: items/size is size_t, not unsigned long. */
-typedef void * (* mz_alloc_func)(void* opaque, size_t items, size_t size);
+typedef void* (* mz_alloc_func)(void* opaque, size_t items, size_t size);
+
 typedef void (* mz_free_func)(void* opaque, void* address);
-typedef void * (* mz_realloc_func)(void* opaque, void* address, size_t items, size_t size);
+
+typedef void* (* mz_realloc_func)(void* opaque, void* address, size_t items, size_t size);
 
 /* Compression levels: 0-9 are the standard zlib-style levels, 10 is best possible compression (not zlib compatible, and may be very slow), MZ_DEFAULT_COMPRESSION=MZ_DEFAULT_LEVEL. */
 enum {
@@ -265,8 +267,8 @@ struct mz_internal_state;
 /* Compression/decompression stream struct. */
 typedef struct mz_stream_s {
     const unsigned char* next_in; /* pointer to next byte to read */
-    unsigned int       avail_in;        /* number of bytes available at next_in */
-    mz_ulong           total_in;            /* total number of bytes consumed so far */
+    unsigned int avail_in;        /* number of bytes available at next_in */
+    mz_ulong     total_in;            /* total number of bytes consumed so far */
 
     unsigned char* next_out; /* pointer to next byte to write */
     unsigned int avail_out;  /* number of bytes that can be written to next_out */
@@ -277,12 +279,12 @@ typedef struct mz_stream_s {
 
     mz_alloc_func zalloc; /* optional heap allocation function (defaults to malloc) */
     mz_free_func  zfree;   /* optional heap free function (defaults to free) */
-    void          * opaque;         /* heap alloc function user pointer */
+    void* opaque;         /* heap alloc function user pointer */
 
     int      data_type;     /* data_type (unused) */
     mz_ulong adler;    /* adler32 of the @library or uncompressed data */
     mz_ulong reserved; /* not used */
-}            mz_stream;
+}           mz_stream;
 
 typedef mz_stream* mz_streamp;
 
@@ -377,17 +379,29 @@ const char* mz_error(int err);
 /* Redefine zlib-compatible names to miniz equivalents, so miniz.c can be used as a drop-in replacement for the subset of zlib that miniz.c supports. */
 /* Define MINIZ_NO_ZLIB_COMPATIBLE_NAMES to disable zlib-compatibility if you use zlib in the same project. */
 #ifndef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+
 typedef unsigned char Byte;
+
 typedef unsigned int  uInt;
+
 typedef mz_ulong      uLong;
+
 typedef Byte          Bytef;
+
 typedef uInt          uIntf;
+
 typedef char          charf;
+
 typedef int           intf;
-typedef void          * voidpf;
-typedef uLong         uLongf;
-typedef void          * voidp;
+
+typedef void* voidpf;
+
+typedef uLong uLongf;
+
+typedef void* voidp;
+
 typedef void* const voidpc;
+
 #define Z_NULL 0
 #define Z_NO_FLUSH MZ_NO_FLUSH
 #define Z_PARTIAL_FLUSH MZ_PARTIAL_FLUSH
@@ -462,21 +476,21 @@ typedef void* const voidpc;
 #include <string.h>
 
 /* ------------------- Types and macros */
-typedef unsigned char  mz_uint8;
+typedef unsigned char mz_uint8;
 
-typedef signed short   mz_int16;
+typedef signed short mz_int16;
 
 typedef unsigned short mz_uint16;
 
-typedef unsigned int   mz_uint32;
+typedef unsigned int mz_uint32;
 
-typedef unsigned int   mz_uint;
+typedef unsigned int mz_uint;
 
-typedef int64_t        mz_int64;
+typedef int64_t mz_int64;
 
-typedef uint64_t       mz_uint64;
+typedef uint64_t mz_uint64;
 
-typedef int            mz_bool;
+typedef int mz_bool;
 
 #define MZ_FALSE (0)
 #define MZ_TRUE (1)
@@ -683,28 +697,28 @@ typedef enum {
 /* tdefl's compression state structure. */
 typedef struct {
     tdefl_put_buf_func_ptr m_pPut_buf_func;
-    void                   * m_pPut_buf_user;
-    mz_uint                m_flags, m_max_probes[2];
-    int                    m_greedy_parsing;
-    mz_uint                m_adler32, m_lookahead_pos, m_lookahead_size, m_dict_size;
-    mz_uint8               * m_pLZ_code_buf, * m_pLZ_flags, * m_pOutput_buf, * m_pOutput_buf_end;
-    mz_uint                m_num_flags_left, m_total_lz_bytes, m_lz_code_buf_dict_pos, m_bits_in, m_bit_buffer;
-    mz_uint                m_saved_match_dist, m_saved_match_len, m_saved_lit, m_output_flush_ofs, m_output_flush_remaining, m_finished, m_block_index, m_wants_to_finish;
-    tdefl_status           m_prev_return_status;
-    const void             * m_pIn_buf;
-    void                   * m_pOut_buf;
-    size_t                 * m_pIn_buf_size, * m_pOut_buf_size;
-    tdefl_flush            m_flush;
-    const mz_uint8         * m_pSrc;
-    size_t                 m_src_buf_left, m_out_buf_ofs;
-    mz_uint8               m_dict[TDEFL_LZ_DICT_SIZE + TDEFL_MAX_MATCH_LEN - 1];
-    mz_uint16              m_huff_count[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
-    mz_uint16              m_huff_codes[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
-    mz_uint8               m_huff_code_sizes[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
-    mz_uint8               m_lz_code_buf[TDEFL_LZ_CODE_BUF_SIZE];
-    mz_uint16              m_next[TDEFL_LZ_DICT_SIZE];
-    mz_uint16              m_hash[TDEFL_LZ_HASH_SIZE];
-    mz_uint8               m_output_buf[TDEFL_OUT_BUF_SIZE];
+    void* m_pPut_buf_user;
+    mz_uint m_flags, m_max_probes[2];
+    int     m_greedy_parsing;
+    mz_uint m_adler32, m_lookahead_pos, m_lookahead_size, m_dict_size;
+    mz_uint8* m_pLZ_code_buf, * m_pLZ_flags, * m_pOutput_buf, * m_pOutput_buf_end;
+    mz_uint                   m_num_flags_left, m_total_lz_bytes, m_lz_code_buf_dict_pos, m_bits_in, m_bit_buffer;
+    mz_uint                   m_saved_match_dist, m_saved_match_len, m_saved_lit, m_output_flush_ofs, m_output_flush_remaining, m_finished, m_block_index, m_wants_to_finish;
+    tdefl_status              m_prev_return_status;
+    const void* m_pIn_buf;
+    void      * m_pOut_buf;
+    size_t    * m_pIn_buf_size, * m_pOut_buf_size;
+    tdefl_flush                 m_flush;
+    const mz_uint8* m_pSrc;
+    size_t    m_src_buf_left, m_out_buf_ofs;
+    mz_uint8  m_dict[TDEFL_LZ_DICT_SIZE + TDEFL_MAX_MATCH_LEN - 1];
+    mz_uint16 m_huff_count[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
+    mz_uint16 m_huff_codes[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
+    mz_uint8  m_huff_code_sizes[TDEFL_MAX_HUFF_TABLES][TDEFL_MAX_HUFF_SYMBOLS];
+    mz_uint8  m_lz_code_buf[TDEFL_LZ_CODE_BUF_SIZE];
+    mz_uint16 m_next[TDEFL_LZ_DICT_SIZE];
+    mz_uint16 m_hash[TDEFL_LZ_HASH_SIZE];
+    mz_uint8  m_output_buf[TDEFL_OUT_BUF_SIZE];
 }               tdefl_compressor;
 
 /* Initializes the compressor. */
@@ -781,6 +795,7 @@ size_t tinfl_decompress_mem_to_mem(void* pOut_buf, size_t out_buf_len, const voi
 /* tinfl_decompress_mem_to_callback() decompresses a block in memory to an internal 32KB buffer, and a user provided callback function will be called to flush the buffer. */
 /* Returns 1 on success or 0 on failure. */
 typedef int (* tinfl_put_buf_func_ptr)(const void* pBuf, int len, void* pUser);
+
 int tinfl_decompress_mem_to_callback(const void* pIn_buf,
                                      size_t* pIn_buf_size,
                                      tinfl_put_buf_func_ptr pPut_buf_func,
@@ -788,6 +803,7 @@ int tinfl_decompress_mem_to_callback(const void* pIn_buf,
                                      int flags);
 
 struct tinfl_decompressor_tag;
+
 typedef struct tinfl_decompressor_tag tinfl_decompressor;
 
 /* Allocate the tinfl_decompressor structure in C so that */
@@ -875,7 +891,9 @@ typedef struct {
 #endif
 
 #if TINFL_USE_64BIT_BITBUF
+
 typedef mz_uint64 tinfl_bit_buf_t;
+
 #define TINFL_BITBUF_SIZE (64)
 #else
 typedef mz_uint32 tinfl_bit_buf_t;
@@ -966,10 +984,13 @@ typedef struct {
 } mz_zip_archive_file_stat;
 
 typedef size_t  (* mz_file_read_func)(void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n);
+
 typedef size_t  (* mz_file_write_func)(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n);
+
 typedef mz_bool (* mz_file_needs_keepalive)(void* pOpaque);
 
 struct mz_zip_internal_state_tag;
+
 typedef struct mz_zip_internal_state_tag mz_zip_internal_state;
 
 typedef enum {
@@ -1050,12 +1071,12 @@ typedef struct {
     mz_alloc_func   m_pAlloc;
     mz_free_func    m_pFree;
     mz_realloc_func m_pRealloc;
-    void            * m_pAlloc_opaque;
+    void* m_pAlloc_opaque;
 
     mz_file_read_func       m_pRead;
     mz_file_write_func      m_pWrite;
     mz_file_needs_keepalive m_pNeeds_keepalive;
-    void                    * m_pIO_opaque;
+    void* m_pIO_opaque;
 
     mz_zip_internal_state* m_pState;
 
@@ -1063,7 +1084,7 @@ typedef struct {
 
 typedef struct {
     mz_zip_archive* pZip;
-    mz_uint       flags;
+    mz_uint flags;
 
     int status;
 #ifndef MINIZ_DISABLE_ZIP_READER_CRC32_CHECKS
@@ -1071,8 +1092,8 @@ typedef struct {
 #endif
     mz_uint64                read_buf_size, read_buf_ofs, read_buf_avail, comp_remaining, out_buf_ofs, cur_file_ofs;
     mz_zip_archive_file_stat file_stat;
-    void                     * pRead_buf;
-    void                     * pWrite_buf;
+    void* pRead_buf;
+    void* pWrite_buf;
 
     size_t out_blk_remain;
 

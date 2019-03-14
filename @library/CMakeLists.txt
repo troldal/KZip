@@ -17,7 +17,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         #target_compile_options(Zippy PRIVATE -Weverything)
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        target_compile_options(Zippy PRIVATE -Weffc++)
+        #target_compile_options(Zippy PRIVATE -Weffc++)
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         # using Intel C++
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -51,7 +51,7 @@ set(Zippy_IMPL_SOURCES
 #generate_export_header(Zippy)
 target_sources(Zippy
         PRIVATE
-            ${Zippy_IMPL_SOURCES})
+        ${Zippy_IMPL_SOURCES})
 
 # ===== Copy header files to (staged) install directory ===== #
 file(REMOVE_RECURSE ${Zippy_INSTALLDIR}/include/)
@@ -60,12 +60,12 @@ file(COPY
         ${CMAKE_CURRENT_LIST_DIR}/ZipEntry.h
         ${CMAKE_CURRENT_LIST_DIR}/ZipException.h
         ${CMAKE_CURRENT_LIST_DIR}/Zippy.h
-     DESTINATION
+        DESTINATION
         ${Zippy_INSTALLDIR}/include/Zippy/)
 
 file(COPY
         ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.h
-     DESTINATION
+        DESTINATION
         ${Zippy_INSTALLDIR}/include/Zippy/miniz)
 
 #=======================================================================================================================

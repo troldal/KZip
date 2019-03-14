@@ -31,8 +31,8 @@ Impl::ZipEntry::ZipEntry(const Zippy::ZipEntryInfo& info)
 
 Impl::ZipEntry::ZipEntry(const std::string& name, const Zippy::ZipEntryData& data) {
 
-    m_EntryInfo = CreateInfo(name);
-    m_EntryData = data;
+    m_EntryInfo  = CreateInfo(name);
+    m_EntryData  = data;
     m_IsModified = true;
 
 }

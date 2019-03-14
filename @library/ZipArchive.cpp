@@ -146,16 +146,20 @@ std::vector<ZipEntryMetaData> ZipArchive::GetMetaData(bool includeDirs, bool inc
 
 std::vector<ZipEntryMetaData> ZipArchive::GetMetaDataInDir(const std::string& dir, bool includeDirs, bool includeFiles) {
 
-    auto result = GetMetaData(includeDirs, includeFiles);
+    std::vector<ZipEntryMetaData> result;
+    for (auto& item : m_ZipEntries) {
+        if (item.Filename().substr(0, dir.size()) != dir) continue;
 
-/*    if (dir.empty()) return result;
+        if (includeDirs && item.IsDirectory()) {
+            result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+            continue;
+        }
 
-    auto theDir = dir;
-    if (theDir.back() != '/') theDir += '/';
-
-    result.erase(std::remove_if(result.begin(), result.end(), [&](const ZipEntryMetaData& entry) {
-        return entry.Filename.substr(0, theDir.size()) != theDir || entry.Filename == theDir;
-    }), result.end());*/
+        if (includeFiles && !item.IsDirectory()) {
+            result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+            continue;
+        }
+    }
 
     return result;
 }

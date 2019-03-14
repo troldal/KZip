@@ -53,11 +53,8 @@ int main() {
         std::string time = std::ctime(&item.Time);
         time = time.substr(0, time.length() - 1);
 
-        tp << (item.Index < 10 ? "0" + to_string(item.Index) : to_string(item.Index))
-           << item.Filename
-           << item.CompressedSize
-           << item.UncompressedSize
-           << time;
+        tp << (item.Index < 10 ? "0" + to_string(item.Index) : to_string(item.Index)) << item.Filename << item.CompressedSize
+           << item.UncompressedSize << time;
     }
     tp.PrintFooter();
 

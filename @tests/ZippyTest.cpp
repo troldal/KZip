@@ -2,39 +2,103 @@
 // Created by Troldal on 2019-03-13.
 //
 
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
+#include <Zippy/Zippy.h>
 
-unsigned int Factorial( unsigned int number ) {
-    return number <= 1 ? number : Factorial(number-1)*number;
+TEST_CASE("Test 1: Create new archive") {
+
+    REQUIRE(false);
 }
 
+TEST_CASE("Test 2: Open existing archive") {
 
-//test_load_file();
-//test_load_stream();
-//test_load_bytes();
-//test_reset();
-//test_getinfo();
-//test_infolist();
-//test_namelist();
-//test_open_by_name();
-//test_open_by_info();
-//test_extract_current_directory();
-//test_extract_path();
-//test_extractall_current_directory();
-//test_extractall_path();
-//test_extractall_members_name();
-//test_extractall_members_info();
-//test_printdir();
-//test_read();
-//test_testzip();
-//test_write();
-//test_writestr();
-//test_comment();
+    // Set up
+    Zippy::ZipArchive archive;
+    archive.Open("./CreatedWithWinZip.zip");
 
-TEST_CASE( "Factorials are computed", "[factorial]" ) {
-REQUIRE( Factorial(1) == 1 );
-REQUIRE( Factorial(2) == 2 );
-REQUIRE( Factorial(3) == 6 );
-REQUIRE( Factorial(10) == 3628800 );
+    SECTION("Count entries") {
+        REQUIRE(archive.GetNumEntries() == 12);
+    }
+
+    SECTION("List entries") {
+        REQUIRE(false);
+    }
+
+    SECTION("Count entries in directory") {
+        REQUIRE(false);
+    }
+
+    SECTION("List entries in directory") {
+        REQUIRE(false);
+    }
+
+    SECTION("Check entries exist") {
+        REQUIRE(false);
+    }
+
+    SECTION("Extract entry to disk") {
+        REQUIRE(false);
+    }
+
+    SECTION("Get entry binary data") {
+        REQUIRE(false);
+    }
+
+    SECTION("Get entry string data") {
+        REQUIRE(false);
+    }
+
+    SECTION("Get entry meta data") {
+        REQUIRE(false);
+    }
+}
+
+TEST_CASE("Test 3: Modify archive") {
+
+    // Set up
+
+    SECTION("Add entry") {
+        REQUIRE(false);
+    }
+
+    SECTION("Delete entry") {
+        REQUIRE(false);
+    }
+
+    SECTION("Set entry binary data") {
+        REQUIRE(false);
+    }
+
+    SECTION("Set entry string data") {
+        REQUIRE(false);
+    }
+
+    SECTION("Set entry comment data") {
+        REQUIRE(false);
+    }
+
+    SECTION("Save archive") {
+        REQUIRE(false);
+    }
+
+    SECTION("Save archive as") {
+        REQUIRE(false);
+    }
+}
+
+TEST_CASE("Test 4: Class operations") {
+
+    // Set up
+
+    SECTION("Archive move") {
+        REQUIRE(false);
+    }
+
+    SECTION("Entry move") {
+        REQUIRE(false);
+    }
+
+    SECTION("Entry copy") {
+        REQUIRE(false);
+    }
 }

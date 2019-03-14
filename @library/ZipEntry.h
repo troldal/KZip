@@ -22,16 +22,16 @@ namespace Zippy {
     using ZipEntryData = std::vector<std::byte>;
 
     struct ZipEntryMetaData {
-        ZipEntryMetaData(const ZipEntryInfo& info);
+        explicit ZipEntryMetaData(const ZipEntryInfo& info);
 
-        uint32_t Index;
-        uint64_t CompressedSize;
-        uint64_t UncompressedSize;
-        bool IsDirectory;
-        bool IsEncrypted;
-        bool IsSupported;
-        std::string Filename;
-        std::string Comment;
+        uint32_t     Index;
+        uint64_t     CompressedSize;
+        uint64_t     UncompressedSize;
+        bool         IsDirectory;
+        bool         IsEncrypted;
+        bool         IsSupported;
+        std::string  Filename;
+        std::string  Comment;
         const time_t Time;
     };
 

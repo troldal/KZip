@@ -35,74 +35,77 @@
 namespace Zippy {
 
     /**
-     * @brief
+     * @brief The ZipArchive class represents the zip archive file as a whole. It consists of the individual zip entries, which
+     * can be both files and folders.
      */
     class ZipArchive {
 
     public:
 
         /**
-         * @brief
+         * @brief Constructor. Constructs a null-archive, which can be used for creating a new .zip file
+         * or opening an existing one.
          */
         explicit ZipArchive() = default;
 
         /**
-         * @brief
-         * @param fileName
+         * @brief Constructor. Constructs an archive object, using the fileName input parameter. If the file already exists,
+         * it will be opened. Otherwise, a new object will be created.
+         * @param fileName The name of the file to open or create.
          */
         explicit ZipArchive(const std::string& fileName);
 
         /**
-         * @brief
-         * @param other
+         * @brief Copy Constructor (deleted).
+         * @param other The object to copy
          */
         ZipArchive(const ZipArchive& other) = delete;
 
         /**
-         * @brief
-         * @param other
+         * @brief Move Constructor.
+         * @param other The object to be moved.
          */
         ZipArchive(ZipArchive&& other) = default;
 
         /**
-         * @brief
+         * @brief Destructor.
          */
         virtual ~ZipArchive();
 
         /**
-         * @brief
-         * @param other
-         * @return
+         * @brief Copy Assignment Operator (deleted)
+         * @param other The object to be copied.
+         * @return A reference to the copied-to object.
          */
         ZipArchive& operator=(const ZipArchive& other) = delete;
 
         /**
-         * @brief
-         * @param other
-         * @return
+         * @brief Move Assignment Operator.
+         * @param other The object to be moved.
+         * @return A reference to the moved-to object.
          */
         ZipArchive& operator=(ZipArchive&& other) = default;
 
         /**
-         * @brief
-         * @param fileName
+         * @brief Creates a new (empty) archive file with the given filename.
+         * @param fileName The filename for the new archive.
          */
         void Create(const std::string& fileName);
 
         /**
-         * @brief
-         * @param fileName
+         * @brief Open an existing archive file with the given filename.
+         * @param fileName The filename of the archive to open.
          */
         void Open(const std::string& fileName);
 
         /**
-         * @brief
+         * @brief Close the archive for reading and writing.
          */
         void Close();
 
         /**
-         * @brief
-         * @return
+         * @brief Checks if the archive file is open for reading and writing.
+         * @return true if it is open; otherwise false;
          */
         bool IsOpen();
 
@@ -221,7 +224,7 @@ namespace Zippy {
         static std::string GenerateRandomName();
 
     private:
-        mz_zip_archive m_Archive = mz_zip_archive(); /**< */
+        mz_zip_archive m_Archive     = mz_zip_archive(); /**< */
         std::string    m_ArchivePath = ""; /**< */
         bool           m_IsOpen      = false; /**< */
 
