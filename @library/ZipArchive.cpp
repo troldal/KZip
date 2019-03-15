@@ -257,7 +257,7 @@ ZipEntry ZipArchive::GetEntry(const std::string& name) {
     return ZipEntry(&*result);
 }
 
-// TODO: The two AddEntry functions are completely identical. Can something be done?
+// TODO: The three AddEntry functions are essentially identical. Can something be done?
 
 ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data) {
 
@@ -281,6 +281,18 @@ ZipEntry ZipArchive::AddEntry(const std::string& name, const std::string& data) 
         return ZipEntry(&*result);
 
     return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
+}
+
+ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntry& entry) {
+
+    auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+        return name == entry.Filename();
+    });
+
+    if (result != m_ZipEntries.end())
+        return ZipEntry(&*result);
+
+    return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, entry.GetData())));
 }
 
 void ZipArchive::ThrowException(mz_zip_error error, const std::string& errorString) {
