@@ -285,6 +285,7 @@ ZipEntry ZipArchive::AddEntry(const std::string& name, const std::string& data) 
 
 ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntry& entry) {
 
+    // TODO: Ensure to check for self-asignment.
     auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });

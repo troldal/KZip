@@ -208,6 +208,12 @@ namespace Zippy {
          */
         ZipEntry AddEntry(const std::string& name, const std::string& data);
 
+        /**
+         * @brief
+         * @param name
+         * @param entry
+         * @return
+         */
         ZipEntry AddEntry(const std::string& name, const ZipEntry& entry);
 
     private:
