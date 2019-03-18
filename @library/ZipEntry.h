@@ -128,6 +128,17 @@ namespace Zippy {
              */
             void SetData(const ZipEntryData& data);
 
+            /**
+             * @brief
+             * @return
+             */
+            std::string GetName() const;
+
+            /**
+             * @brief
+             * @param data
+             */
+            void SetName(const std::string& name);
 
             // ===== Metadata Access
 

@@ -79,6 +79,17 @@ void Impl::ZipEntry::SetData(const ZipEntryData& data) {
     m_IsModified = true;
 }
 
+// TODO: To be implemented
+std::string Impl::ZipEntry::GetName() const {
+
+    return std::string();
+}
+
+// TODO: To be implemented
+void Impl::ZipEntry::SetName(const std::string& name) {
+
+}
+
 uint32_t Impl::ZipEntry::Index() const {
 
     return m_EntryInfo.m_file_index;

@@ -16,6 +16,7 @@
 
 using namespace Zippy;
 
+// ================================================================================
 ZipArchive::ZipArchive(const std::string& fileName)
         : m_ArchivePath(fileName) {
 
@@ -31,11 +32,13 @@ ZipArchive::ZipArchive(const std::string& fileName)
 
 }
 
+// ================================================================================
 ZipArchive::~ZipArchive() {
 
     Close();
 }
 
+// ================================================================================
 void ZipArchive::Create(const std::string& fileName) {
 
     // ===== Prepare an archive file;
@@ -55,6 +58,7 @@ void ZipArchive::Create(const std::string& fileName) {
 
 }
 
+// ================================================================================
 void ZipArchive::Open(const std::string& fileName) {
 
     // ===== Open the archive file for reading.
@@ -80,6 +84,7 @@ void ZipArchive::Open(const std::string& fileName) {
     std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
 }
 
+// ================================================================================
 void ZipArchive::Close() {
 
     if (m_IsOpen) mz_zip_reader_end(&m_Archive);
@@ -92,6 +97,7 @@ bool ZipArchive::IsOpen() {
     return m_IsOpen;
 }
 
+// ================================================================================
 std::vector<std::string> ZipArchive::GetEntryNames(bool includeDirs, bool includeFiles) {
 
     std::vector<std::string> result;
@@ -110,6 +116,7 @@ std::vector<std::string> ZipArchive::GetEntryNames(bool includeDirs, bool includ
     return result;
 }
 
+// ================================================================================
 std::vector<std::string> ZipArchive::GetEntryNamesInDir(const std::string& dir, bool includeDirs, bool includeFiles) {
 
     auto result = GetEntryNames(includeDirs, includeFiles);
@@ -126,6 +133,7 @@ std::vector<std::string> ZipArchive::GetEntryNamesInDir(const std::string& dir, 
     return result;
 }
 
+// ================================================================================
 std::vector<ZipEntryMetaData> ZipArchive::GetMetaData(bool includeDirs, bool includeFiles) {
 
     std::vector<ZipEntryMetaData> result;
@@ -144,6 +152,7 @@ std::vector<ZipEntryMetaData> ZipArchive::GetMetaData(bool includeDirs, bool inc
     return result;
 }
 
+// ================================================================================
 std::vector<ZipEntryMetaData> ZipArchive::GetMetaDataInDir(const std::string& dir, bool includeDirs, bool includeFiles) {
 
     std::vector<ZipEntryMetaData> result;
@@ -164,31 +173,36 @@ std::vector<ZipEntryMetaData> ZipArchive::GetMetaDataInDir(const std::string& di
     return result;
 }
 
+// ================================================================================
 int ZipArchive::GetNumEntries(bool includeDirs, bool includeFiles) {
 
     return GetEntryNames(includeDirs, includeFiles).size();
 }
 
+// ================================================================================
 int ZipArchive::GetNumEntriesInDir(const std::string& dir, bool includeDirs, bool includeFiles) {
 
     return GetEntryNamesInDir(dir, includeDirs, includeFiles).size();
 }
 
-bool ZipArchive::HasEntry(const std::string& entryName, bool includeDirs, bool includeFiles) {
+// ================================================================================
+bool ZipArchive::HasEntry(const std::string& entryName) {
 
-    auto result = GetEntryNames(includeDirs, includeFiles);
+    auto result = GetEntryNames(true, true);
     return std::find(result.begin(), result.end(), entryName) != result.end();
 }
 
+// ================================================================================
 void ZipArchive::Save() {
 
     SaveAs(m_ArchivePath);
 }
 
+// ================================================================================
 void ZipArchive::SaveAs(std::string filename) {
 
     // ===== Generate a random file name with the same path as the current file
-    std::string tempPath = filename.substr(0, filename.rfind('/') + 1) + GenerateRandomName();
+    std::string tempPath = filename.substr(0, filename.rfind('/') + 1) + GenerateRandomName(20);
 
     // ===== Prepare an temporary archive file with the random filename;
     mz_zip_archive tempArchive = mz_zip_archive();
@@ -229,6 +243,7 @@ void ZipArchive::SaveAs(std::string filename) {
 
 }
 
+// ================================================================================
 void ZipArchive::DeleteEntry(const std::string& name) {
 
     m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
@@ -259,43 +274,62 @@ ZipEntry ZipArchive::GetEntry(const std::string& name) {
 
 // TODO: The three AddEntry functions are essentially identical. Can something be done?
 
+// ================================================================================
 ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data) {
 
+    // ===== Check if an entry with the given name already exists in the archive.
     auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
-    if (result != m_ZipEntries.end())
+    // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+    if (result != m_ZipEntries.end()) {
+        result->SetData(data);
         return ZipEntry(&*result);
+    }
 
+    // ===== Otherwise, add a new entry with the given name and data, and return the object.
     return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
 }
 
+// ================================================================================
 ZipEntry ZipArchive::AddEntry(const std::string& name, const std::string& data) {
 
+    // ===== Check if an entry with the given name already exists in the archive.
     auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
-    if (result != m_ZipEntries.end())
+    // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+    if (result != m_ZipEntries.end()) {
+        result->SetData(data);
         return ZipEntry(&*result);
+    }
 
+    // ===== Otherwise, add a new entry with the given name and data, and return the object.
     return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
 }
 
+// ================================================================================
 ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntry& entry) {
 
     // TODO: Ensure to check for self-asignment.
+    // ===== Check if an entry with the given name already exists in the archive.
     auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
-    if (result != m_ZipEntries.end())
+    // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+    if (result != m_ZipEntries.end()) {
+        result->SetData(entry.GetData());
         return ZipEntry(&*result);
+    }
 
+    // ===== Otherwise, add a new entry with the given name and data, and return the object.
     return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, entry.GetData())));
 }
 
+// ================================================================================
 void ZipArchive::ThrowException(mz_zip_error error, const std::string& errorString) {
 
     switch (error) {
@@ -398,7 +432,8 @@ void ZipArchive::ThrowException(mz_zip_error error, const std::string& errorStri
     }
 }
 
-std::string ZipArchive::GenerateRandomName() {
+// ================================================================================
+std::string ZipArchive::GenerateRandomName(int length) {
 
     std::string letters = "abcdefghijklmnopqrstuvwxyz0123456789";
 
