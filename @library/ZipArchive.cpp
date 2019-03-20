@@ -251,25 +251,23 @@ void ZipArchive::DeleteEntry(const std::string& name) {
     }), m_ZipEntries.end());
 }
 
+// ================================================================================
 ZipEntry ZipArchive::GetEntry(const std::string& name) {
 
+    // ===== Look up ZipEntry object.
     auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
         return name == entry.Filename();
     });
 
-    size_t datasize;
+    // ===== Extract the data from the archive to the ZipEntry object.
+    result->m_EntryData.resize(result->UncompressedSize());
+    mz_zip_reader_extract_file_to_mem(&m_Archive, name.c_str(), result->m_EntryData.data(), result->m_EntryData.size(), 0);
 
-    // TODO: Consider using mz_zip_reader_extract_file_to_mem instead (safer).
-    std::unique_ptr<std::byte, decltype(&mz_free)> data(static_cast<std::byte*>(mz_zip_reader_extract_file_to_heap(&m_Archive,
-                                                                                                                   name.c_str(),
-                                                                                                                   &datasize,
-                                                                                                                   0)), &mz_free);
-
-    if (!data)
+    // ===== Check that the operation was successful
+    if (result->m_EntryData.data() == nullptr)
         ThrowException(m_Archive.m_last_error, "Error extracting archive entry.");
 
-    result->SetData(std::vector<std::byte>(data.get(), data.get() + datasize));
-
+    // ===== Return ZipEntry object with the file data.
     return ZipEntry(&*result);
 }
 
