@@ -259,6 +259,7 @@ ZipEntry ZipArchive::GetEntry(const std::string& name) {
 
     size_t datasize;
 
+    // TODO: Consider using mz_zip_reader_extract_file_to_mem instead (safer).
     std::unique_ptr<std::byte, decltype(&mz_free)> data(static_cast<std::byte*>(mz_zip_reader_extract_file_to_heap(&m_Archive,
                                                                                                                    name.c_str(),
                                                                                                                    &datasize,

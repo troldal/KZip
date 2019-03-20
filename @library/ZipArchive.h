@@ -36,7 +36,47 @@ namespace Zippy {
 
     /**
      * @brief The ZipArchive class represents the zip archive file as a whole. It consists of the individual zip entries, which
-     * can be both files and folders.
+     * can be both files and folders. It is the main access point into a .zip archive on disk and can be
+     * used to create new archives and to open and modify existing archives.
+     * @details
+     * #### Implementation and usage details
+     * Using the ZipArchive class, it is possible to create new .zip archive files, as well as open and modify existing ones.
+     *
+     * A ZipArchive object holds a mz_zip_archive object (a miniz struct representing a .zip archive) as well as a std::vector
+     * with ZipEntry objects representing each file (entry) in the archive. The actual entry data is lazy-instantiated, so that
+     * the data is only loaded from the .zip archive when it is actually needed.
+     *
+     * The following example shows how a new .zip archive can be created and new entries added.
+     * ```cpp
+     * int main() {
+     *
+     *       // ===== Creating empty archive
+     *       Zippy::ZipArchive arch;
+     *       arch.Create("./TestArchive.zip");
+     *
+     *       // ===== Adding 10 entries to the archive
+     *       for (int i = 0; i <= 9; ++i)
+     *           arch.AddEntry(to_string(i) + ".txt", "this is test " + to_string(i));
+     *
+     *       // ===== Delete the first entry
+     *       arch.DeleteEntry("0.txt");
+     *
+     *       // ===== Save and close the archive
+     *       arch.Save();
+     *       arch.Close();
+     *
+     *       // ===== Reopen and check contents
+     *       arch.Open("./TestArchive.zip");
+     *       cout << "Number of entries in archive: " << arch.GetNumEntries() << endl;
+     *       cout << "Content of \"9.txt\": " << endl << arch.GetEntry("9.txt").GetDataAsString();
+     *
+     *       return 0;
+     *   }
+     * ```
+     *
+     * For further information, please refer to the full API documentation below.
+     *
+     * Note that the actual files in the .zip archive can be retrieved via the ZipEntry interface, not the ZipArchive interface.
      */
     class ZipArchive {
 
@@ -45,6 +85,8 @@ namespace Zippy {
         /**
          * @brief Constructor. Constructs a null-archive, which can be used for creating a new .zip file
          * or opening an existing one.
+         * @warning Before using an archive object that has been default constructed, a call to either Open() or Create() must be
+         * performed. Otherwise, the object will be in a null-state and calls to member functions will be undefined.
          */
         explicit ZipArchive() = default;
 
