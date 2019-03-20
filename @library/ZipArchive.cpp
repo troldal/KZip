@@ -443,9 +443,9 @@ std::string ZipArchive::GenerateRandomName(int length) {
     std::uniform_int_distribution<int> distr(range_from, range_to);
 
     std::string result;
-    for (int    i                                 = 0; i < 20; ++i) {
+
+    for (int i = 0; i < length; ++i)
         result += letters[distr(generator)];
-    }
 
     return result + ".tmp";
 }
