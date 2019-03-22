@@ -193,13 +193,9 @@ bool ZipArchive::HasEntry(const std::string& entryName) {
 }
 
 // ================================================================================
-void ZipArchive::Save() {
+void ZipArchive::Save(std::string filename) {
 
-    SaveAs(m_ArchivePath);
-}
-
-// ================================================================================
-void ZipArchive::SaveAs(std::string filename) {
+    if (filename.empty()) filename = m_ArchivePath;
 
     // ===== Generate a random file name with the same path as the current file
     std::string tempPath = filename.substr(0, filename.rfind('/') + 1) + GenerateRandomName(20);
@@ -244,6 +240,11 @@ void ZipArchive::SaveAs(std::string filename) {
 }
 
 // ================================================================================
+void ZipArchive::Save(std::ostream& stream) {
+    // TODO: To be implemented
+}
+
+// ================================================================================
 void ZipArchive::DeleteEntry(const std::string& name) {
 
     m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
@@ -271,8 +272,22 @@ ZipEntry ZipArchive::GetEntry(const std::string& name) {
     return ZipEntry(&*result);
 }
 
-// TODO: The three AddEntry functions are essentially identical. Can something be done?
+// ================================================================================
+void ZipArchive::ExtractEntry(const std::string& name, const std::string& dest) {
 
+}
+
+// ================================================================================
+void ZipArchive::ExtractDir(const std::string& dir, const std::string& dest) {
+
+}
+
+// ================================================================================
+void ZipArchive::ExtractAll(const std::string& dest) {
+
+}
+
+// TODO: The three AddEntry functions are essentially identical. Can something be done?
 // ================================================================================
 ZipEntry ZipArchive::AddEntry(const std::string& name, const ZipEntryData& data) {
 
@@ -443,7 +458,7 @@ std::string ZipArchive::GenerateRandomName(int length) {
     std::uniform_int_distribution<int> distr(range_from, range_to);
 
     std::string result;
-    for (int    i                                 = 0; i < 20; ++i) {
+    for (int    i                                 = 0; i < length; ++i) {
         result += letters[distr(generator)];
     }
 

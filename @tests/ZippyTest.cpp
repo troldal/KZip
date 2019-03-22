@@ -76,6 +76,14 @@ TEST_CASE("Test 2: Open existing archive") {
         REQUIRE(false);
     }
 
+    SECTION("Extract directory to disk") {
+        REQUIRE(false);
+    }
+
+    SECTION("Extract all to disk") {
+        REQUIRE(false);
+    }
+
     SECTION("Get entry binary data") {
         auto result = archive.GetEntry("file 1.txt").GetData();
         std::string resultStr;

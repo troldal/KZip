@@ -236,15 +236,17 @@ namespace Zippy {
         bool HasEntry(const std::string& entryName);
 
         /**
-         * @brief Save the archive. This will apply all modifications and cannot be undone.
-         */
-        void Save();
-
-        /**
          * @brief Save the archive with a new name. The original archive will remain unchanged.
          * @param filename The new filename.
+         * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
          */
-        void SaveAs(std::string filename);
+        void Save(std::string filename = "");
+
+        /**
+         * @brief
+         * @param stream
+         */
+        void Save(std::ostream& stream);
 
         /**
          * @brief Deletes an entry from the archive.
@@ -258,6 +260,29 @@ namespace Zippy {
          * @return A ZipEntry object with the requested entry.
          */
         ZipEntry GetEntry(const std::string& name);
+
+        /**
+         * @brief Extract the entry with the provided name to the destination path.
+         * @param name The name of the entry to extract.
+         * @param dest The path to extract the entry to.
+         * @todo To be implemented
+         */
+        void ExtractEntry(const std::string& name, const std::string& dest);
+
+        /**
+         * @brief Extract all entries in the given directory to the destination path.
+         * @param dir The name of the directory to extract.
+         * @param dest The path to extract the entry to.
+         * @todo To be implemented
+         */
+        void ExtractDir(const std::string& dir, const std::string& dest);
+
+        /**
+         * @brief Extract all archive contents to the destination path.
+         * @param dest The path to extract the entry to.
+         * @todo To be implemented
+         */
+        void ExtractAll(const std::string& dest);
 
         /**
          * @brief Add a new entry to the archive.
