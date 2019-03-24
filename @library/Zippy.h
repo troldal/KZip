@@ -5,8 +5,8 @@
 #ifndef Zippy_Zippy_H
 #define Zippy_Zippy_H
 
-#include "ZipArchive.h"
-#include "ZipEntry.h"
-#include "ZipException.h"
+#include "Zippy/ZipArchive.h"
+#include "Zippy/ZipEntry.h"
+#include "Zippy/ZipException.h"
 
 #endif //Zippy_Zippy_H

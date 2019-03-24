@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include <Zippy/Zippy.h>
+#include <Zippy.h>
 
 using namespace std;
 

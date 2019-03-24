@@ -3,7 +3,7 @@
 //
 
 #include "catch.hpp"
-#include <Zippy/Zippy.h>
+#include <Zippy.h>
 
 TEST_CASE("Test 1: Create new archive") {
     Zippy::ZipArchive archive;
@@ -73,6 +73,14 @@ TEST_CASE("Test 2: Open existing archive") {
     }
 
     SECTION("Extract entry to disk") {
+        REQUIRE(false);
+    }
+
+    SECTION("Extract directory to disk") {
+        REQUIRE(false);
+    }
+
+    SECTION("Extract all to disk") {
         REQUIRE(false);
     }
 
