@@ -40,8 +40,6 @@ set(ZIPPY_IMPL_HEADERS
         ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.h)
 
 set(ZIPPY_IMPL_SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/ZipArchive.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/ZipEntry.cpp
         ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.c)
 
 #=======================================================================================================================

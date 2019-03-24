@@ -28,7 +28,15 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <random>
+#include <iostream>
+#include <cstdio>
+#include <cstddef>
+#include <memory>
+#include <fstream>
 
+#include "ZipException.h"
 #include "miniz/miniz.h"
 #include "ZipEntry.h"
 
@@ -99,7 +107,20 @@ namespace Zippy {
          * and will be opened. Otherwise, the file does not exist and will be created.
          * @param fileName The name of the file to open or create.
          */
-        explicit ZipArchive(const std::string& fileName);
+        explicit ZipArchive(const std::string& fileName)
+                : m_ArchivePath(fileName) {
+
+            std::ifstream f(fileName.c_str());
+            if (f.good()) {
+                f.close();
+                Open(fileName);
+            }
+            else {
+                f.close();
+                Create(fileName);
+            }
+
+        }
 
         /**
          * @brief Copy Constructor (deleted).
@@ -120,7 +141,10 @@ namespace Zippy {
          * @note The destructor will call the Close() member function. If the archive has been modified but not saved,
          * all changes will be discarded.
          */
-        virtual ~ZipArchive();
+        virtual ~ZipArchive() {
+
+            Close();
+        }
 
         /**
          * @brief Copy Assignment Operator (deleted)
@@ -147,7 +171,24 @@ namespace Zippy {
          * After ensuring that the file is valid (i.e. not somehow corrupted), it is opened using the Open() member function.
          * @param fileName The filename for the new archive.
          */
-        void Create(const std::string& fileName);
+        void Create(const std::string& fileName) {
+
+            // ===== Prepare an archive file;
+            mz_zip_archive archive = mz_zip_archive();
+            mz_zip_writer_init_file(&archive, fileName.c_str(), 0);
+
+            // ===== Finalize and close the temporary archive
+            mz_zip_writer_finalize_archive(&archive);
+            mz_zip_writer_end(&archive);
+
+            // ===== Validate the temporary file
+            mz_zip_error errordata;
+            if (!mz_zip_validate_file_archive(fileName.c_str(), 0, &errordata))
+                ThrowException(errordata, "Archive creation failed!");
+
+            Open(fileName);
+
+        }
 
         /**
          * @brief Open an existing archive file with the given filename.
@@ -158,19 +199,50 @@ namespace Zippy {
          * @note If more than one entry with the same name exists in the archive, only the newest one will be loaded.
          * When saving the archive, only the loaded entries will be kept; other entries with the same name will be deleted.
          */
-        void Open(const std::string& fileName);
+        void Open(const std::string& fileName) {
+
+            // ===== Open the archive file for reading.
+            if (m_IsOpen) mz_zip_reader_end(&m_Archive);
+            m_ArchivePath = fileName;
+            if (!mz_zip_reader_init_file(&m_Archive, m_ArchivePath.c_str(), 0))
+                ThrowException(m_Archive.m_last_error, "Error opening archive file " + fileName + ".");
+            m_IsOpen = true;
+
+            // ===== Iterate through the archive and add the entries to the internal data structure
+            for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&m_Archive); i++) {
+                ZipEntryInfo info;
+                if (!mz_zip_reader_file_stat(&m_Archive, i, &info))
+                    ThrowException(m_Archive.m_last_error, "Failed getting entry info.");
+
+                m_ZipEntries.emplace_back(info);
+            }
+
+            // ===== Remove entries with identical names. The newest entries will be retained.
+            auto isEqual = [](const Impl::ZipEntry& a, const Impl::ZipEntry& b) { return a.Filename() == b.Filename(); };
+            std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
+            m_ZipEntries.erase(std::unique(m_ZipEntries.begin(), m_ZipEntries.end(), isEqual), m_ZipEntries.end());
+            std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
+        }
 
         /**
          * @brief Close the archive for reading and writing.
          * @note If the archive has been modified but not saved, all changes will be discarded.
          */
-        void Close();
+        void Close() {
+
+            if (m_IsOpen) mz_zip_reader_end(&m_Archive);
+            m_ZipEntries.clear();
+            m_ArchivePath = "";
+        }
 
         /**
          * @brief Checks if the archive file is open for reading and writing.
          * @return true if it is open; otherwise false;
          */
-        bool IsOpen();
+        bool IsOpen() {
+
+            return m_IsOpen;
+        }
 
         /**
          * @brief Get a list of the entries in the archive. Depending on the input parameters, the list will include
@@ -179,7 +251,23 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of std::strings with the entry names.
          */
-        std::vector<std::string> GetEntryNames(bool includeDirs = true, bool includeFiles = true);
+        std::vector<std::string> GetEntryNames(bool includeDirs = true, bool includeFiles = true) {
+
+            std::vector<std::string> result;
+            for (auto& item : m_ZipEntries) {
+                if (includeDirs && item.IsDirectory()) {
+                    result.emplace_back(item.Filename());
+                    continue;
+                }
+
+                if (includeFiles && !item.IsDirectory()) {
+                    result.emplace_back(item.Filename());
+                    continue;
+                }
+            }
+
+            return result;
+        }
 
         /**
          * @brief Get a list of the entries in a specific directory of the archive. Depending on the input parameters,
@@ -189,7 +277,21 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of std::strings with the entry names. The directory itself is not included.
          */
-        std::vector<std::string> GetEntryNamesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true);
+        std::vector<std::string> GetEntryNamesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) {
+
+            auto result = GetEntryNames(includeDirs, includeFiles);
+
+            if (dir.empty()) return result;
+
+            auto theDir = dir;
+            if (theDir.back() != '/') theDir += '/';
+
+            result.erase(std::remove_if(result.begin(), result.end(), [&](const std::string& filename) {
+                return filename.substr(0, theDir.size()) != theDir || filename == theDir;
+            }), result.end());
+
+            return result;
+        }
 
         /**
          * @brief Get a list of the metadata for entries in the archive. Depending on the input parameters, the list will include
@@ -198,7 +300,23 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of ZipEntryMetaData structs with the entry metadata.
          */
-        std::vector<ZipEntryMetaData> GetMetaData(bool includeDirs = true, bool includeFiles = true);
+        std::vector<ZipEntryMetaData> GetMetaData(bool includeDirs = true, bool includeFiles = true) {
+
+            std::vector<ZipEntryMetaData> result;
+            for (auto& item : m_ZipEntries) {
+                if (includeDirs && item.IsDirectory()) {
+                    result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+                    continue;
+                }
+
+                if (includeFiles && !item.IsDirectory()) {
+                    result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+                    continue;
+                }
+            }
+
+            return result;
+        }
 
         /**
          * @brief Get a list of the metadata for entries in a specific directory of the archive. Depending on the input
@@ -208,7 +326,25 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of ZipEntryMetaData structs with the entry metadata. The directory itself is not included.
          */
-        std::vector<ZipEntryMetaData> GetMetaDataInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true);
+        std::vector<ZipEntryMetaData> GetMetaDataInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) {
+
+            std::vector<ZipEntryMetaData> result;
+            for (auto& item : m_ZipEntries) {
+                if (item.Filename().substr(0, dir.size()) != dir) continue;
+
+                if (includeDirs && item.IsDirectory()) {
+                    result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+                    continue;
+                }
+
+                if (includeFiles && !item.IsDirectory()) {
+                    result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
+                    continue;
+                }
+            }
+
+            return result;
+        }
         /**
          * @brief Get the number of entries in the archive. Depending on the input parameters, the number will include
          * directories, files or both.
@@ -216,7 +352,10 @@ namespace Zippy {
          * @param includeFiles If true, the number will include files; otherwise not. Default is true
          * @return An int with the number of entries.
          */
-        int GetNumEntries(bool includeDirs = true, bool includeFiles = true);
+        int GetNumEntries(bool includeDirs = true, bool includeFiles = true)  {
+
+            return GetEntryNames(includeDirs, includeFiles).size();
+        }
 
         /**
          * @brief Get the number of entries in a specific directory of the archive. Depending on the input parameters,
@@ -226,40 +365,115 @@ namespace Zippy {
          * @param includeFiles If true, the number will include files; otherwise not. Default is true.
          * @return An int with the number of entries. The directory itself is not included.
          */
-        int GetNumEntriesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true);
+        int GetNumEntriesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) {
+
+            return GetEntryNamesInDir(dir, includeDirs, includeFiles).size();
+        }
 
         /**
          * @brief Check if an entry with a given name exists in the archive.
          * @param entryName The name of the entry to check for.
          * @return true if it exists; otherwise false;
          */
-        bool HasEntry(const std::string& entryName);
+        bool HasEntry(const std::string& entryName) {
+
+            auto result = GetEntryNames(true, true);
+            return std::find(result.begin(), result.end(), entryName) != result.end();
+        }
 
         /**
          * @brief Save the archive with a new name. The original archive will remain unchanged.
          * @param filename The new filename.
          * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
          */
-        void Save(std::string filename = "");
+        void Save(std::string filename = "")  {
+
+            if (filename.empty()) filename = m_ArchivePath;
+
+            // ===== Generate a random file name with the same path as the current file
+            std::string tempPath = filename.substr(0, filename.rfind('/') + 1) + GenerateRandomName(20);
+
+            // ===== Prepare an temporary archive file with the random filename;
+            mz_zip_archive tempArchive = mz_zip_archive();
+            mz_zip_writer_init_file(&tempArchive, tempPath.c_str(), 0);
+
+            // ===== Iterate through the ZipEntries and add entries to the temporary file
+            for (auto& file : m_ZipEntries) {
+                if (!file.IsModified()) {
+                    if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_Archive, file.Index()))
+                        ThrowException(m_Archive.m_last_error, "Failed copying archive entry.");
+                }
+
+                else {
+                    if (!mz_zip_writer_add_mem(&tempArchive,
+                                               file.Filename().c_str(),
+                                               file.m_EntryData.data(),
+                                               file.m_EntryData.size(),
+                                               MZ_DEFAULT_COMPRESSION))
+                        ThrowException(m_Archive.m_last_error, "Failed adding archive entry.");
+                }
+
+            }
+
+            // ===== Finalize and close the temporary archive
+            mz_zip_writer_finalize_archive(&tempArchive);
+            mz_zip_writer_end(&tempArchive);
+
+            // ===== Validate the temporary file
+            mz_zip_error errordata;
+            if (!mz_zip_validate_file_archive(tempPath.c_str(), 0, &errordata))
+                ThrowException(errordata, "Invalid archive");
+
+            // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
+            Close();
+            std::remove(filename.c_str());
+            std::rename(tempPath.c_str(), filename.c_str());
+            Open(filename);
+
+        }
 
         /**
          * @brief
          * @param stream
          */
-        void Save(std::ostream& stream);
+        void Save(std::ostream& stream) {
+            // TODO: To be implemented
+        }
 
         /**
          * @brief Deletes an entry from the archive.
          * @param name The name of the entry to delete.
          */
-        void DeleteEntry(const std::string& name);
+        void DeleteEntry(const std::string& name) {
+
+            m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                return name == entry.Filename();
+            }), m_ZipEntries.end());
+        }
 
         /**
          * @brief Get the entry with the specified name.
          * @param name The name of the entry in the archive.
          * @return A ZipEntry object with the requested entry.
          */
-        ZipEntry GetEntry(const std::string& name);
+        ZipEntry GetEntry(const std::string& name) {
+
+            // ===== Look up ZipEntry object.
+            auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                return name == entry.Filename();
+            });
+
+            // ===== Extract the data from the archive to the ZipEntry object.
+            result->m_EntryData.resize(result->UncompressedSize());
+            mz_zip_reader_extract_file_to_mem(&m_Archive, name.c_str(), result->m_EntryData.data(), result->m_EntryData.size(), 0);
+
+            // ===== Check that the operation was successful
+            if (result->m_EntryData.data() == nullptr)
+                ThrowException(m_Archive.m_last_error, "Error extracting archive entry.");
+
+            // ===== Return ZipEntry object with the file data.
+            return ZipEntry(&*result);
+        }
 
         /**
          * @brief Extract the entry with the provided name to the destination path.
@@ -267,7 +481,9 @@ namespace Zippy {
          * @param dest The path to extract the entry to.
          * @todo To be implemented
          */
-        void ExtractEntry(const std::string& name, const std::string& dest);
+        void ExtractEntry(const std::string& name, const std::string& dest) {
+
+        }
 
         /**
          * @brief Extract all entries in the given directory to the destination path.
@@ -275,14 +491,20 @@ namespace Zippy {
          * @param dest The path to extract the entry to.
          * @todo To be implemented
          */
-        void ExtractDir(const std::string& dir, const std::string& dest);
+        void ExtractDir(const std::string& dir, const std::string& dest) {
+
+        }
 
         /**
          * @brief Extract all archive contents to the destination path.
          * @param dest The path to extract the entry to.
          * @todo To be implemented
          */
-        void ExtractAll(const std::string& dest);
+        void ExtractAll(const std::string& dest) {
+
+        }
+
+        // TODO: The three AddEntry functions are essentially identical. Can something be done?
 
         /**
          * @brief Add a new entry to the archive.
@@ -291,7 +513,22 @@ namespace Zippy {
          * @return The ZipEntry object that has been added to the archive.
          * @note If an entry with given name already exists, it will be overwritten.
          */
-        ZipEntry AddEntry(const std::string& name, const ZipEntryData& data);
+        ZipEntry AddEntry(const std::string& name, const ZipEntryData& data) {
+
+            // ===== Check if an entry with the given name already exists in the archive.
+            auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                return name == entry.Filename();
+            });
+
+            // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+            if (result != m_ZipEntries.end()) {
+                result->SetData(data);
+                return ZipEntry(&*result);
+            }
+
+            // ===== Otherwise, add a new entry with the given name and data, and return the object.
+            return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
+        }
 
         /**
          * @brief Add a new entry to the archive.
@@ -300,7 +537,22 @@ namespace Zippy {
          * @return The ZipEntry object that has been added to the archive.
          * @note If an entry with given name already exists, it will be overwritten.
          */
-        ZipEntry AddEntry(const std::string& name, const std::string& data);
+        ZipEntry AddEntry(const std::string& name, const std::string& data) {
+
+            // ===== Check if an entry with the given name already exists in the archive.
+            auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                return name == entry.Filename();
+            });
+
+            // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+            if (result != m_ZipEntries.end()) {
+                result->SetData(data);
+                return ZipEntry(&*result);
+            }
+
+            // ===== Otherwise, add a new entry with the given name and data, and return the object.
+            return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, data)));
+        }
 
         /**
          * @brief Add a new entry to the archive, using another entry as input. This is mostly used for cloning existing entries
@@ -310,7 +562,23 @@ namespace Zippy {
          * @return The ZipEntry object that has been added to the archive.
          * @note If an entry with given name already exists, it will be overwritten.
          */
-        ZipEntry AddEntry(const std::string& name, const ZipEntry& entry);
+        ZipEntry AddEntry(const std::string& name, const ZipEntry& entry) {
+
+            // TODO: Ensure to check for self-asignment.
+            // ===== Check if an entry with the given name already exists in the archive.
+            auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                return name == entry.Filename();
+            });
+
+            // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
+            if (result != m_ZipEntries.end()) {
+                result->SetData(entry.GetData());
+                return ZipEntry(&*result);
+            }
+
+            // ===== Otherwise, add a new entry with the given name and data, and return the object.
+            return ZipEntry(&m_ZipEntries.emplace_back(Impl::ZipEntry(name, entry.GetData())));
+        }
 
     private:
 
@@ -319,7 +587,107 @@ namespace Zippy {
          * @param error The miniz errorcode
          * @param errorString A description of the error.
          */
-        static void ThrowException(mz_zip_error error, const std::string& errorString);
+        static void ThrowException(mz_zip_error error, const std::string& errorString) {
+
+            switch (error) {
+                case MZ_ZIP_UNDEFINED_ERROR:
+                    throw ZipExceptionUndefined(errorString);
+
+                case MZ_ZIP_TOO_MANY_FILES:
+                    throw ZipExceptionTooManyFiles(errorString);
+
+                case MZ_ZIP_FILE_TOO_LARGE:
+                    throw ZipExceptionFileTooLarge(errorString);
+
+                case MZ_ZIP_UNSUPPORTED_METHOD:
+                    throw ZipExceptionUnsupportedMethod(errorString);
+
+                case MZ_ZIP_UNSUPPORTED_ENCRYPTION:
+                    throw ZipExceptionUnsupportedEncryption(errorString);
+
+                case MZ_ZIP_UNSUPPORTED_FEATURE:
+                    throw ZipExceptionUnsupportedFeature(errorString);
+
+                case MZ_ZIP_FAILED_FINDING_CENTRAL_DIR:
+                    throw ZipExceptionFailedFindingCentralDir(errorString);
+
+                case MZ_ZIP_NOT_AN_ARCHIVE:
+                    throw ZipExceptionNotAnArchive(errorString);
+
+                case MZ_ZIP_INVALID_HEADER_OR_CORRUPTED:
+                    throw ZipExceptionInvalidHeader(errorString);
+
+                case MZ_ZIP_UNSUPPORTED_MULTIDISK:
+                    throw ZipExceptionMultidiskUnsupported(errorString);
+
+                case MZ_ZIP_DECOMPRESSION_FAILED:
+                    throw ZipExceptionDecompressionFailed(errorString);
+
+                case MZ_ZIP_COMPRESSION_FAILED:
+                    throw ZipExceptionCompressionFailed(errorString);
+
+                case MZ_ZIP_UNEXPECTED_DECOMPRESSED_SIZE:
+                    throw ZipExceptionUnexpectedDecompSize(errorString);
+
+                case MZ_ZIP_CRC_CHECK_FAILED:
+                    throw ZipExceptionCrcCheckFailed(errorString);
+
+                case MZ_ZIP_UNSUPPORTED_CDIR_SIZE:
+                    throw ZipExceptionUnsupportedCDirSize(errorString);
+
+                case MZ_ZIP_ALLOC_FAILED:
+                    throw ZipExceptionAllocFailed(errorString);
+
+                case MZ_ZIP_FILE_OPEN_FAILED:
+                    throw ZipExceptionFileOpenFailed(errorString);
+
+                case MZ_ZIP_FILE_CREATE_FAILED:
+                    throw ZipExceptionFileCreateFailed(errorString);
+
+                case MZ_ZIP_FILE_WRITE_FAILED:
+                    throw ZipExceptionFileWriteFailed(errorString);
+
+                case MZ_ZIP_FILE_READ_FAILED:
+                    throw ZipExceptionFileReadFailed(errorString);
+
+                case MZ_ZIP_FILE_CLOSE_FAILED:
+                    throw ZipExceptionFileCloseFailed(errorString);
+
+                case MZ_ZIP_FILE_SEEK_FAILED:
+                    throw ZipExceptionFileSeekFailed(errorString);
+
+                case MZ_ZIP_FILE_STAT_FAILED:
+                    throw ZipExceptionFileStatFailed(errorString);
+
+                case MZ_ZIP_INVALID_PARAMETER:
+                    throw ZipExceptionInvalidParameter(errorString);
+
+                case MZ_ZIP_INVALID_FILENAME:
+                    throw ZipExceptionInvalidFilename(errorString);
+
+                case MZ_ZIP_BUF_TOO_SMALL:
+                    throw ZipExceptionBufferTooSmall(errorString);
+
+                case MZ_ZIP_INTERNAL_ERROR:
+                    throw ZipExceptionInternalError(errorString);
+
+                case MZ_ZIP_FILE_NOT_FOUND:
+                    throw ZipExceptionFileNotFound(errorString);
+
+                case MZ_ZIP_ARCHIVE_TOO_LARGE:
+                    throw ZipExceptionArchiveTooLarge(errorString);
+
+                case MZ_ZIP_VALIDATION_FAILED:
+                    throw ZipExceptionValidationFailed(errorString);
+
+                case MZ_ZIP_WRITE_CALLBACK_FAILED:
+                    throw ZipExceptionWriteCallbackFailed(errorString);
+
+                default:
+                    throw ZipException(errorString);
+
+            }
+        }
 
         /**
          * @brief Generates a random filename, which is used to generate a temporary archive when modifying and saving
@@ -327,7 +695,23 @@ namespace Zippy {
          * @param length The length of the filename to create.
          * @return Returns the generated filenamen, appended with '.tmp'.
          */
-        static std::string GenerateRandomName(int length);
+        static std::string GenerateRandomName(int length) {
+
+            std::string letters = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+            auto                               range_from = 0;
+            auto                               range_to   = letters.size() - 1;
+            std::random_device                 rand_dev;
+            std::mt19937                       generator(rand_dev());
+            std::uniform_int_distribution<int> distr(range_from, range_to);
+
+            std::string result;
+            for (int    i                                 = 0; i < length; ++i) {
+                result += letters[distr(generator)];
+            }
+
+            return result + ".tmp";
+        }
 
     private:
         mz_zip_archive m_Archive     = mz_zip_archive(); /**< The struct used by miniz, to handle archive files. */
