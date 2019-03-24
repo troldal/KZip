@@ -41,5 +41,5 @@ add_subdirectory(@doxy)
 #=======================================================================================================================
 # Define internal dependencies
 #=======================================================================================================================
-add_dependencies(Example1 Zippy)
-add_dependencies(ZippyTest Zippy)
+#add_dependencies(Example1 Zippy)
+#add_dependencies(ZippyTest Zippy)

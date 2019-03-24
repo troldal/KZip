@@ -3,7 +3,7 @@
 //
 
 #include "catch.hpp"
-#include <Zippy/Zippy.h>
+#include <Zippy.h>
 
 TEST_CASE("Test 1: Create new archive") {
     Zippy::ZipArchive archive;
