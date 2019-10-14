@@ -282,7 +282,7 @@ typedef struct mz_stream_s {
     void* opaque;         /* heap alloc function user pointer */
 
     int      data_type;     /* data_type (unused) */
-    mz_ulong adler;    /* adler32 of the @library or uncompressed data */
+    mz_ulong adler;    /* adler32 of the library or uncompressed data */
     mz_ulong reserved; /* not used */
 }           mz_stream;
 
@@ -355,7 +355,7 @@ int mz_inflateInit2(mz_streamp pStream, int window_bits);
 /*   pStream is the stream to read from and write to. You must initialize/update the next_in, avail_in, next_out, and avail_out members. */
 /*   flush may be MZ_NO_FLUSH, MZ_SYNC_FLUSH, or MZ_FINISH. */
 /*   On the first call, if flush is MZ_FINISH it's assumed the input and output buffers are both sized large enough to decompress the entire stream in a single call (this is slightly faster). */
-/*   MZ_FINISH implies that there are no more @library bytes available beside what's already in the input buffer, and that the output buffer is large enough to hold the rest of the decompressed data. */
+/*   MZ_FINISH implies that there are no more library bytes available beside what's already in the input buffer, and that the output buffer is large enough to hold the rest of the decompressed data. */
 /* Return values: */
 /*   MZ_OK on success. Either more input is needed but not available, and/or there's more output to be written but the output buffer is full. */
 /*   MZ_STREAM_END if all needed input has been consumed and all output bytes have been written. For zlib streams, the adler-32 of the decompressed data has also been verified. */
@@ -585,7 +585,7 @@ enum {
     TDEFL_HUFFMAN_ONLY = 0, TDEFL_DEFAULT_MAX_PROBES = 128, TDEFL_MAX_PROBES_MASK = 0xFFF
 };
 
-/* TDEFL_WRITE_ZLIB_HEADER: If set, the compressor outputs a zlib header before the deflate data, and the Adler-32 of the @library data at the end. Otherwise, you'll get raw deflate data. */
+/* TDEFL_WRITE_ZLIB_HEADER: If set, the compressor outputs a zlib header before the deflate data, and the Adler-32 of the library data at the end. Otherwise, you'll get raw deflate data. */
 /* TDEFL_COMPUTE_ADLER32: Always compute the adler-32 of the input data (even when not writing zlib headers). */
 /* TDEFL_GREEDY_PARSING_FLAG: Set to use faster greedy parsing, instead of more efficient lazy parsing. */
 /* TDEFL_NONDETERMINISTIC_PARSING_FLAG: Enable to decrease the compressor's initialization time to the minimum, but the output may vary from run to run given the same input (depending on the contents of memory). */
@@ -608,7 +608,7 @@ enum {
 /* High level compression functions: */
 /* tdefl_compress_mem_to_heap() compresses a block in memory to a heap block allocated via malloc(). */
 /* On entry: */
-/*  pSrc_buf, src_buf_len: Pointer and size of @library block to compress. */
+/*  pSrc_buf, src_buf_len: Pointer and size of library block to compress. */
 /*  flags: The max match finder probes (default is 128) logically OR'd against the above flags. Higher probes are slower but improve compression. */
 /* On return: */
 /*  Function returns a pointer to the compressed data, or NULL on failure. */
@@ -780,7 +780,7 @@ enum {
 /* High level decompression functions: */
 /* tinfl_decompress_mem_to_heap() decompresses a block in memory to a heap block allocated via malloc(). */
 /* On entry: */
-/*  pSrc_buf, src_buf_len: Pointer and size of the Deflate or zlib @library data to decompress. */
+/*  pSrc_buf, src_buf_len: Pointer and size of the Deflate or zlib library data to decompress. */
 /* On return: */
 /*  Function returns a pointer to the decompressed data, or NULL on failure. */
 /*  *pOut_len will be set to the decompressed data's size, which could be larger than src_buf_len on uncompressible data. */
@@ -839,12 +839,12 @@ typedef enum {
             TINFL_STATUS_DONE = 0,
 
     /* This flag indicates the inflator MUST have more input data (even 1 byte) before it can make any more forward progress, or you need to clear the TINFL_FLAG_HAS_MORE_INPUT */
-    /* flag on the next call if you don't have any more @library data. If the @library data was somehow corrupted it's also possible (but unlikely) for the inflator to keep on demanding input to */
+    /* flag on the next call if you don't have any more library data. If the library data was somehow corrupted it's also possible (but unlikely) for the inflator to keep on demanding input to */
     /* proceed, so be sure to properly set the TINFL_FLAG_HAS_MORE_INPUT flag. */
             TINFL_STATUS_NEEDS_MORE_INPUT = 1,
 
     /* This flag indicates the inflator definitely has 1 or more bytes of uncompressed data available, but it cannot write this data into the output buffer. */
-    /* Note if the @library compressed data was corrupted it's possible for the inflator to return a lot of uncompressed data to the caller. I've been assuming you know how much uncompressed data to expect */
+    /* Note if the library compressed data was corrupted it's possible for the inflator to return a lot of uncompressed data to the caller. I've been assuming you know how much uncompressed data to expect */
     /* (either exact or worst case) and will stop calling the inflator and fail after receiving too much. In pure streaming scenarios where you have no idea how many bytes to expect this may not be possible */
     /* so I may need to add some code to address this. */
             TINFL_STATUS_HAS_MORE_OUTPUT = 2
@@ -1364,7 +1364,7 @@ mz_bool mz_zip_writer_add_cfile(mz_zip_archive* pZip,
 #endif
 
 /* Adds a file to an archive by fully cloning the data from another archive. */
-/* This function fully clones the @library file's compressed data (no recompression), along with its full filename, extra data (it may add or modify the zip64 local header extra data field), and the optional descriptor following the compressed data. */
+/* This function fully clones the library file's compressed data (no recompression), along with its full filename, extra data (it may add or modify the zip64 local header extra data field), and the optional descriptor following the compressed data. */
 mz_bool mz_zip_writer_add_from_zip_reader(mz_zip_archive* pZip, mz_zip_archive* pSource_zip, mz_uint src_file_index);
 
 /* Finalizes the archive by writing the central directory records followed by the end of central directory record. */
@@ -2008,7 +2008,7 @@ const char* mz_error(int err) {
   This is free and unencumbered software released into the public domain.
 
   Anyone is free to copy, modify, publish, use, compile, sell, or
-  distribute this software, either in @library code form or as a compiled
+  distribute this software, either in library code form or as a compiled
   binary, for any purpose, commercial or non-commercial, and by any
   means.
 
@@ -5386,7 +5386,7 @@ mz_bool mz_zip_reader_is_file_a_directory(mz_zip_archive* pZip, mz_uint file_ind
     }
 
     /* Bugfix: This code was also checking if the internal attribute was non-zero, which wasn't correct. */
-    /* Most/all zip writers (hopefully) set DOS file/directory attributes in the low 16-bits, so check for the DOS directory flag and ignore the @library OS ID in the created by field. */
+    /* Most/all zip writers (hopefully) set DOS file/directory attributes in the low 16-bits, so check for the DOS directory flag and ignore the library OS ID in the created by field. */
     /* FIXME: Remove this check? Is it necessary - we already check the filename. */
     attribute_mapping_id = MZ_READ_LE16(p + MZ_ZIP_CDH_VERSION_MADE_BY_OFS) >> 8;
     (void)attribute_mapping_id;
@@ -6234,7 +6234,7 @@ size_t mz_zip_reader_extract_iter_read(mz_zip_reader_extract_iter_state* pState,
 
     if ((pState->flags & MZ_ZIP_FLAG_COMPRESSED_DATA) || (!pState->file_stat.m_method)) {
         /* The file is stored or the caller has requested the compressed data, calc amount to return. */
-        copied_to_caller = MZ_MIN(buf_size, pState->comp_remaining);
+        copied_to_caller = (size_t)MZ_MIN(buf_size, pState->comp_remaining); /* cast to size_t to silence Visual Studio warning */
 
         /* Zip is in memory....or requires reading from a file? */
         if (pState->pZip->m_pState->m_pMem) {
@@ -8247,7 +8247,7 @@ mz_bool mz_zip_writer_add_from_zip_reader(mz_zip_archive* pZip, mz_zip_archive* 
     if ((pSource_zip->m_pState->m_zip64) && (!pZip->m_pState->m_zip64))
         return mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
 
-    /* Get pointer to the @library central dir header and crack it */
+    /* Get pointer to the library central dir header and crack it */
     if (NULL == (pSrc_central_header = mz_zip_get_cdh(pSource_zip, src_file_index)))
         return mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
 
@@ -8281,7 +8281,7 @@ mz_bool mz_zip_writer_add_from_zip_reader(mz_zip_archive* pZip, mz_zip_archive* 
     cur_src_file_ofs = src_file_stat.m_local_header_ofs;
     cur_dst_file_ofs = pZip->m_archive_size;
 
-    /* Read the @library archive's local dir header */
+    /* Read the library archive's local dir header */
     if (pSource_zip->m_pRead(pSource_zip->m_pIO_opaque,
                              cur_src_file_ofs,
                              pLocal_header,
@@ -8390,7 +8390,7 @@ mz_bool mz_zip_writer_add_from_zip_reader(mz_zip_archive* pZip, mz_zip_archive* 
 
     cur_dst_file_ofs += MZ_ZIP_LOCAL_DIR_HEADER_SIZE;
 
-    /* Copy over the @library archive bytes to the dest archive, also ensure we have enough buf space to handle optional data descriptor */
+    /* Copy over the library archive bytes to the dest archive, also ensure we have enough buf space to handle optional data descriptor */
     if (NULL == (pBuf = pZip->m_pAlloc(pZip->m_pAlloc_opaque,
                                        1,
                                        (size_t)MZ_MAX(32U,

@@ -27,16 +27,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Consider moving these to specific targets and/or make them optional
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
-set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
+#set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
 
 #=======================================================================================================================
 # Add project subdirectories
 #=======================================================================================================================
-add_subdirectory(@library)
-add_subdirectory(@examples)
-add_subdirectory(@tests)
-add_subdirectory(@doxy)
+add_subdirectory(library)
+add_subdirectory(examples)
+add_subdirectory(tests)
+add_subdirectory(doxy)
 
 #=======================================================================================================================
 # Define internal dependencies
