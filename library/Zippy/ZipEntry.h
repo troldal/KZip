@@ -343,8 +343,8 @@ namespace Zippy {
                 info.m_is_encrypted     = false;
                 info.m_is_supported     = true;
 
-                strcpy(info.m_filename, name.c_str());
-                strcpy(info.m_comment, "");
+                strcpy_s(info.m_filename, sizeof info.m_filename, name.c_str());
+                strcpy_s(info.m_comment, sizeof info.m_comment, "");
 
                 return info;
             }
