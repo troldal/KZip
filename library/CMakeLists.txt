@@ -1,82 +1,24 @@
 #=======================================================================================================================
 # Define library targets
 #=======================================================================================================================
-#add_library(Zippy STATIC "")
-#add_library(Zippy::Zippy ALIAS Zippy)
 
-#=======================================================================================================================
-# Set compiler flags
-#=======================================================================================================================
-#include(CheckIPOSupported)
-#if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#    target_compile_options(Zippy PRIVATE -Wall)
-#    target_compile_options(Zippy PRIVATE -Wextra)
-#    target_compile_options(Zippy PRIVATE -pedantic)
-#    #target_compile_options(Zippy PRIVATE -fsanitize=leak -g)
-#    #target_link_options(Zippy PRIVATE -fsanitize=leak -g)
-#    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#        #target_compile_options(Zippy PRIVATE -Weverything)
-#    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-#        #target_compile_options(Zippy PRIVATE -Weffc++)
-#    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-#        # using Intel C++
-#    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-#        # using Visual Studio C++
-#    endif ()
-#elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-#    check_ipo_supported(RESULT result OUTPUT output)
-#    if (result)
-#        set_property(TARGET Zippy PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-#    endif ()
-#endif ()
+# MINIZ library
+# A separate library target is defined, in order to be able to suppress compiler warnings using SYSTEM INTERFACE specifiers
+add_library(miniz INTERFACE)
+target_include_directories(miniz SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}/Zippy/miniz/)
 
-#=======================================================================================================================
-# Find project files
-#=======================================================================================================================
-#set(ZIPPY_IMPL_HEADERS
-#        ${CMAKE_CURRENT_LIST_DIR}/ZipArchive.h
-#        ${CMAKE_CURRENT_LIST_DIR}/ZipEntry.h
-#        ${CMAKE_CURRENT_LIST_DIR}/ZipException.h
-#        ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.h)
-#
-#set(ZIPPY_IMPL_SOURCES
-#        ${CMAKE_CURRENT_LIST_DIR}/miniz/miniz.c)
-
-#=======================================================================================================================
-# Build Zippy library
-#=======================================================================================================================
-#include(GenerateExportHeader)
-#generate_export_header(Zippy)
-#target_sources(Zippy
-#        PRIVATE
-#        ${ZIPPY_IMPL_SOURCES})
-
-# ===== Copy header files to (staged) install directory ===== #
-file(REMOVE_RECURSE ${ZIPPY_INSTALLDIR}/include/)
-
-file(COPY
-        ${CMAKE_CURRENT_LIST_DIR}/Zippy.h
-        DESTINATION
-        ${ZIPPY_INSTALLDIR}/include/)
-
-file(COPY
-        ${CMAKE_CURRENT_LIST_DIR}/Zippy/ZipArchive.h
-        ${CMAKE_CURRENT_LIST_DIR}/Zippy/ZipEntry.h
-        ${CMAKE_CURRENT_LIST_DIR}/Zippy/ZipException.h
-        DESTINATION
-        ${ZIPPY_INSTALLDIR}/include/Zippy/)
-
-file(COPY
-        ${CMAKE_CURRENT_LIST_DIR}/Zippy/miniz/miniz.h
-        DESTINATION
-        ${ZIPPY_INSTALLDIR}/include/Zippy/miniz)
+# ZIPPY library
+add_library(Zippy INTERFACE)
+add_library(Zippy::Zippy ALIAS Zippy)
+target_link_libraries(Zippy INTERFACE miniz)
+target_include_directories(Zippy INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 
 #=======================================================================================================================
 # Install Zippy Library
 #=======================================================================================================================
 #include(GNUInstallDirs)
-#install(TARGETS OpenXLSX
+#install(TARGETS Zippy
 #        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_SUFFIX}
 #        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_SUFFIX}
 #        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-#install(FILES ${OPENXLSX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/OpenXLSX)
+#install(FILES ${Zippy_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Zippy)

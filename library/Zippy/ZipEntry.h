@@ -11,7 +11,7 @@
 #include <iostream>
 
 // ===== Other Includes
-#include "miniz/miniz.h"
+#include <miniz.h>
 
 namespace Zippy {
 

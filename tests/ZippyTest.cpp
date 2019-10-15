@@ -2,7 +2,7 @@
 // Created by Troldal on 2019-03-13.
 //
 
-#include "catch.hpp"
+#include <catch.hpp>
 #include <Zippy.h>
 
 TEST_CASE("Test 1: Create new archive") {
