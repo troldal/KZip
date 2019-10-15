@@ -464,7 +464,7 @@ namespace Zippy {
             });
 
             // ===== Extract the data from the archive to the ZipEntry object.
-            result->m_EntryData.resize(static_cast<size_t>(result->UncompressedSize()));
+            result->m_EntryData.resize(result->UncompressedSize());
             mz_zip_reader_extract_file_to_mem(&m_Archive, name.c_str(), result->m_EntryData.data(), result->m_EntryData.size(), 0);
 
             // ===== Check that the operation was successful
