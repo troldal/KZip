@@ -184,7 +184,7 @@ namespace Zippy {
             // ===== Validate the temporary file
             mz_zip_error errordata;
             if (!mz_zip_validate_file_archive(fileName.c_str(), 0, &errordata))
-                ThrowException(errordata, "Archive creation failed!");
+                throw ZipException(mz_zip_get_error_string(errordata));
 
             Open(fileName);
 
@@ -205,14 +205,14 @@ namespace Zippy {
             if (m_IsOpen) mz_zip_reader_end(&m_Archive);
             m_ArchivePath = fileName;
             if (!mz_zip_reader_init_file(&m_Archive, m_ArchivePath.c_str(), 0))
-                ThrowException(m_Archive.m_last_error, "Error opening archive file " + fileName + ".");
+                throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
             m_IsOpen = true;
 
             // ===== Iterate through the archive and add the entries to the internal data structure
             for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&m_Archive); i++) {
                 ZipEntryInfo info;
                 if (!mz_zip_reader_file_stat(&m_Archive, i, &info))
-                    ThrowException(m_Archive.m_last_error, "Failed getting entry info.");
+                    throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
 
                 m_ZipEntries.emplace_back(info);
             }
@@ -401,7 +401,7 @@ namespace Zippy {
             for (auto& file : m_ZipEntries) {
                 if (!file.IsModified()) {
                     if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_Archive, file.Index()))
-                        ThrowException(m_Archive.m_last_error, "Failed copying archive entry.");
+                        throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
                 }
 
                 else {
@@ -410,7 +410,7 @@ namespace Zippy {
                                                file.m_EntryData.data(),
                                                file.m_EntryData.size(),
                                                MZ_DEFAULT_COMPRESSION))
-                        ThrowException(m_Archive.m_last_error, "Failed adding archive entry.");
+                        throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
                 }
 
             }
@@ -422,7 +422,7 @@ namespace Zippy {
             // ===== Validate the temporary file
             mz_zip_error errordata;
             if (!mz_zip_validate_file_archive(tempPath.c_str(), 0, &errordata))
-                ThrowException(errordata, "Invalid archive");
+                throw ZipException(mz_zip_get_error_string(errordata));
 
             // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
             Close();
@@ -469,7 +469,7 @@ namespace Zippy {
 
             // ===== Check that the operation was successful
             if (result->m_EntryData.data() == nullptr)
-                ThrowException(m_Archive.m_last_error, "Error extracting archive entry.");
+                throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
 
             // ===== Return ZipEntry object with the file data.
             return ZipEntry(&*result);
@@ -581,113 +581,6 @@ namespace Zippy {
         }
 
     private:
-
-        /**
-         * @brief Throws the correct exception based on the error code, and adds a description.
-         * @param error The miniz errorcode
-         * @param errorString A description of the error.
-         */
-        static void ThrowException(mz_zip_error error, const std::string& errorString) {
-
-            switch (error) {
-                case MZ_ZIP_UNDEFINED_ERROR:
-                    throw ZipExceptionUndefined(errorString);
-
-                case MZ_ZIP_TOO_MANY_FILES:
-                    throw ZipExceptionTooManyFiles(errorString);
-
-                case MZ_ZIP_FILE_TOO_LARGE:
-                    throw ZipExceptionFileTooLarge(errorString);
-
-                case MZ_ZIP_UNSUPPORTED_METHOD:
-                    throw ZipExceptionUnsupportedMethod(errorString);
-
-                case MZ_ZIP_UNSUPPORTED_ENCRYPTION:
-                    throw ZipExceptionUnsupportedEncryption(errorString);
-
-                case MZ_ZIP_UNSUPPORTED_FEATURE:
-                    throw ZipExceptionUnsupportedFeature(errorString);
-
-                case MZ_ZIP_FAILED_FINDING_CENTRAL_DIR:
-                    throw ZipExceptionFailedFindingCentralDir(errorString);
-
-                case MZ_ZIP_NOT_AN_ARCHIVE:
-                    throw ZipExceptionNotAnArchive(errorString);
-
-                case MZ_ZIP_INVALID_HEADER_OR_CORRUPTED:
-                    throw ZipExceptionInvalidHeader(errorString);
-
-                case MZ_ZIP_UNSUPPORTED_MULTIDISK:
-                    throw ZipExceptionMultidiskUnsupported(errorString);
-
-                case MZ_ZIP_DECOMPRESSION_FAILED:
-                    throw ZipExceptionDecompressionFailed(errorString);
-
-                case MZ_ZIP_COMPRESSION_FAILED:
-                    throw ZipExceptionCompressionFailed(errorString);
-
-                case MZ_ZIP_UNEXPECTED_DECOMPRESSED_SIZE:
-                    throw ZipExceptionUnexpectedDecompSize(errorString);
-
-                case MZ_ZIP_CRC_CHECK_FAILED:
-                    throw ZipExceptionCrcCheckFailed(errorString);
-
-                case MZ_ZIP_UNSUPPORTED_CDIR_SIZE:
-                    throw ZipExceptionUnsupportedCDirSize(errorString);
-
-                case MZ_ZIP_ALLOC_FAILED:
-                    throw ZipExceptionAllocFailed(errorString);
-
-                case MZ_ZIP_FILE_OPEN_FAILED:
-                    throw ZipExceptionFileOpenFailed(errorString);
-
-                case MZ_ZIP_FILE_CREATE_FAILED:
-                    throw ZipExceptionFileCreateFailed(errorString);
-
-                case MZ_ZIP_FILE_WRITE_FAILED:
-                    throw ZipExceptionFileWriteFailed(errorString);
-
-                case MZ_ZIP_FILE_READ_FAILED:
-                    throw ZipExceptionFileReadFailed(errorString);
-
-                case MZ_ZIP_FILE_CLOSE_FAILED:
-                    throw ZipExceptionFileCloseFailed(errorString);
-
-                case MZ_ZIP_FILE_SEEK_FAILED:
-                    throw ZipExceptionFileSeekFailed(errorString);
-
-                case MZ_ZIP_FILE_STAT_FAILED:
-                    throw ZipExceptionFileStatFailed(errorString);
-
-                case MZ_ZIP_INVALID_PARAMETER:
-                    throw ZipExceptionInvalidParameter(errorString);
-
-                case MZ_ZIP_INVALID_FILENAME:
-                    throw ZipExceptionInvalidFilename(errorString);
-
-                case MZ_ZIP_BUF_TOO_SMALL:
-                    throw ZipExceptionBufferTooSmall(errorString);
-
-                case MZ_ZIP_INTERNAL_ERROR:
-                    throw ZipExceptionInternalError(errorString);
-
-                case MZ_ZIP_FILE_NOT_FOUND:
-                    throw ZipExceptionFileNotFound(errorString);
-
-                case MZ_ZIP_ARCHIVE_TOO_LARGE:
-                    throw ZipExceptionArchiveTooLarge(errorString);
-
-                case MZ_ZIP_VALIDATION_FAILED:
-                    throw ZipExceptionValidationFailed(errorString);
-
-                case MZ_ZIP_WRITE_CALLBACK_FAILED:
-                    throw ZipExceptionWriteCallbackFailed(errorString);
-
-                default:
-                    throw ZipException(errorString);
-
-            }
-        }
 
         /**
          * @brief Generates a random filename, which is used to generate a temporary archive when modifying and saving
