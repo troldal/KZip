@@ -30,10 +30,6 @@ option(CREATE_DOCS "Build library documentation (requires Doxygen and Graphviz/D
 option(BUILD_SAMPLES "Build sample programs" OFF)
 option(BUILD_TESTS "Build and run library tests" ON)
 
-# Consider moving these to specific targets and/or make them optional
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
-#set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
-
 #=======================================================================================================================
 # Add project subdirectories
 #=======================================================================================================================

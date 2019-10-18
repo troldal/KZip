@@ -17,6 +17,7 @@
 void CreateWinZipFile(const std::string& filename);
 
 int main(int argc, char* argv[]) {
+
     // Global Setup
     std::cout << std::endl;
     std::cout << "Creating .zip file made with WinZip..." << std::endl;

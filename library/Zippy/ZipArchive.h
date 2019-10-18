@@ -26,6 +26,7 @@
 #ifndef Zippy_ZIPARCHIVE_H
 #define Zippy_ZIPARCHIVE_H
 
+// ===== Standard Library Includes
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -36,11 +37,13 @@
 #include <memory>
 #include <fstream>
 
-#include "ZipException.h"
+// ===== Other Includes
 #include <miniz.h>
+#include "ZipException.h"
 #include "ZipEntry.h"
 
-namespace Zippy {
+namespace Zippy
+{
 
     /**
      * @brief The ZipArchive class represents the zip archive file as a whole. It consists of the individual zip entries, which
@@ -86,7 +89,8 @@ namespace Zippy {
      *
      * Note that the actual files in the .zip archive can be retrieved via the ZipEntry interface, not the ZipArchive interface.
      */
-    class ZipArchive {
+    class ZipArchive
+    {
 
     public:
 
@@ -202,7 +206,8 @@ namespace Zippy {
         void Open(const std::string& fileName) {
 
             // ===== Open the archive file for reading.
-            if (m_IsOpen) mz_zip_reader_end(&m_Archive);
+            if (m_IsOpen)
+                mz_zip_reader_end(&m_Archive);
             m_ArchivePath = fileName;
             if (!mz_zip_reader_init_file(&m_Archive, m_ArchivePath.c_str(), 0))
                 throw ZipException(mz_zip_get_error_string(m_Archive.m_last_error));
@@ -218,7 +223,9 @@ namespace Zippy {
             }
 
             // ===== Remove entries with identical names. The newest entries will be retained.
-            auto isEqual = [](const Impl::ZipEntry& a, const Impl::ZipEntry& b) { return a.Filename() == b.Filename(); };
+            auto isEqual = [](const Impl::ZipEntry& a, const Impl::ZipEntry& b) {
+                return a.Filename() == b.Filename();
+            };
             std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
             m_ZipEntries.erase(std::unique(m_ZipEntries.begin(), m_ZipEntries.end(), isEqual), m_ZipEntries.end());
             std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
@@ -230,7 +237,8 @@ namespace Zippy {
          */
         void Close() {
 
-            if (m_IsOpen) mz_zip_reader_end(&m_Archive);
+            if (m_IsOpen)
+                mz_zip_reader_end(&m_Archive);
             m_ZipEntries.clear();
             m_ArchivePath = "";
         }
@@ -277,14 +285,17 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of std::strings with the entry names. The directory itself is not included.
          */
-        std::vector<std::string> GetEntryNamesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) {
+        std::vector<std::string> GetEntryNamesInDir(const std::string& dir, bool includeDirs = true,
+                                                    bool includeFiles = true) {
 
             auto result = GetEntryNames(includeDirs, includeFiles);
 
-            if (dir.empty()) return result;
+            if (dir.empty())
+                return result;
 
             auto theDir = dir;
-            if (theDir.back() != '/') theDir += '/';
+            if (theDir.back() != '/')
+                theDir += '/';
 
             result.erase(std::remove_if(result.begin(), result.end(), [&](const std::string& filename) {
                 return filename.substr(0, theDir.size()) != theDir || filename == theDir;
@@ -326,11 +337,13 @@ namespace Zippy {
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of ZipEntryMetaData structs with the entry metadata. The directory itself is not included.
          */
-        std::vector<ZipEntryMetaData> GetMetaDataInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) {
+        std::vector<ZipEntryMetaData> GetMetaDataInDir(const std::string& dir, bool includeDirs = true,
+                                                       bool includeFiles = true) {
 
             std::vector<ZipEntryMetaData> result;
             for (auto& item : m_ZipEntries) {
-                if (item.Filename().substr(0, dir.size()) != dir) continue;
+                if (item.Filename().substr(0, dir.size()) != dir)
+                    continue;
 
                 if (includeDirs && item.IsDirectory()) {
                     result.emplace_back(ZipEntryMetaData(item.m_EntryInfo));
@@ -345,6 +358,7 @@ namespace Zippy {
 
             return result;
         }
+
         /**
          * @brief Get the number of entries in the archive. Depending on the input parameters, the number will include
          * directories, files or both.
@@ -352,7 +366,7 @@ namespace Zippy {
          * @param includeFiles If true, the number will include files; otherwise not. Default is true
          * @return An int with the number of entries.
          */
-        int GetNumEntries(bool includeDirs = true, bool includeFiles = true)  {
+        int GetNumEntries(bool includeDirs = true, bool includeFiles = true) {
 
             return GetEntryNames(includeDirs, includeFiles).size();
         }
@@ -385,10 +399,12 @@ namespace Zippy {
          * @brief Save the archive with a new name. The original archive will remain unchanged.
          * @param filename The new filename.
          * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
+         * @throwsx
          */
-        void Save(std::string filename = "")  {
+        void Save(std::string filename = "") {
 
-            if (filename.empty()) filename = m_ArchivePath;
+            if (filename.empty())
+                filename = m_ArchivePath;
 
             // ===== Generate a random file name with the same path as the current file
             std::string tempPath = filename.substr(0, filename.rfind('/') + 1) + GenerateRandomName(20);
@@ -446,9 +462,10 @@ namespace Zippy {
          */
         void DeleteEntry(const std::string& name) {
 
-            m_ZipEntries.erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                return name == entry.Filename();
-            }), m_ZipEntries.end());
+            m_ZipEntries
+                    .erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
+                        return name == entry.Filename();
+                    }), m_ZipEntries.end());
         }
 
         /**
@@ -465,7 +482,8 @@ namespace Zippy {
 
             // ===== Extract the data from the archive to the ZipEntry object.
             result->m_EntryData.resize(result->UncompressedSize());
-            mz_zip_reader_extract_file_to_mem(&m_Archive, name.c_str(), result->m_EntryData.data(), result->m_EntryData.size(), 0);
+            mz_zip_reader_extract_file_to_mem(&m_Archive, name.c_str(), result->m_EntryData.data(),
+                                              result->m_EntryData.size(), 0);
 
             // ===== Check that the operation was successful
             if (result->m_EntryData.data() == nullptr)
@@ -592,14 +610,12 @@ namespace Zippy {
 
             std::string letters = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-            auto                               range_from = 0;
-            auto                               range_to   = letters.size() - 1;
             std::random_device                 rand_dev;
             std::mt19937                       generator(rand_dev());
-            std::uniform_int_distribution<int> distr(range_from, range_to);
+            std::uniform_int_distribution<int> distr(0, letters.size() - 1);
 
             std::string result;
-            for (int    i                                 = 0; i < length; ++i) {
+            for (int i = 0; i < length; ++i) {
                 result += letters[distr(generator)];
             }
 

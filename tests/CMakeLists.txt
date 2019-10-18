@@ -67,3 +67,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(ZippyTest PRIVATE /w14928)
     endif ()
 endif ()
+
+# Consider making them optional
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
+#set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")

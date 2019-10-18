@@ -1,6 +1,27 @@
-//
-// Created by Troldal on 2019-03-11.
-//
+/*
+    MIT License
+
+    Copyright (c) 2019 Kenneth Troldal Balslev
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+ */
 
 #ifndef Zippy_ZIPENTRY_H
 #define Zippy_ZIPENTRY_H
@@ -13,7 +34,8 @@
 // ===== Other Includes
 #include <miniz.h>
 
-namespace Zippy {
+namespace Zippy
+{
 
     class ZipArchive;
     class ZipEntry;
@@ -22,7 +44,16 @@ namespace Zippy {
     using ZipEntryInfo = mz_zip_archive_file_stat;
     using ZipEntryData = std::vector<std::byte>;
 
-    struct ZipEntryMetaData {
+    /**
+     * @brief
+     */
+    struct ZipEntryMetaData
+    {
+
+        /**
+         * @brief
+         * @param info
+         */
         explicit ZipEntryMetaData(const ZipEntryInfo& info)
                 : Index(info.m_file_index),
                   CompressedSize(info.m_comp_size),
@@ -36,22 +67,26 @@ namespace Zippy {
 
         }
 
-        uint32_t     Index;
-        uint64_t     CompressedSize;
-        uint64_t     UncompressedSize;
-        bool         IsDirectory;
-        bool         IsEncrypted;
-        bool         IsSupported;
-        std::string  Filename;
-        std::string  Comment;
-        const time_t Time;
+        uint32_t     Index; /**< */
+        uint64_t     CompressedSize; /**< */
+        uint64_t     UncompressedSize; /**< */
+        bool         IsDirectory; /**< */
+        bool         IsEncrypted; /**< */
+        bool         IsSupported; /**< */
+        std::string  Filename; /**< */
+        std::string  Comment; /**< */
+        const time_t Time; /**< */
     };
 
-    namespace Impl {
+    namespace Impl
+    {
+
         /**
-         * @brief
+         * @brief The Impl::ZipEntry class implements the functionality required for manipulating entries in a zip archive.
+         * @details
          */
-        class ZipEntry {
+        class ZipEntry
+        {
             friend class Zippy::ZipArchive;
             friend class Zippy::ZipEntry;
 
@@ -306,7 +341,7 @@ namespace Zippy {
              * @return
              */
             static uint32_t GetNewIndex(uint32_t latestIndex = 0) {
-                static uint32_t index {0};
+                static uint32_t index{0};
 
                 if (latestIndex > index) {
                     index = latestIndex;
@@ -360,7 +395,8 @@ namespace Zippy {
     /**
      * @brief
      */
-    class ZipEntry {
+    class ZipEntry
+    {
         friend class ZipArchive;
 
     public:
@@ -547,6 +583,5 @@ namespace Zippy {
     };
 
 }  // namespace Zippy
-
 
 #endif //Zippy_ZIPENTRY_H
