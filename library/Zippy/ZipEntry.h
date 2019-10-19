@@ -83,7 +83,7 @@ namespace Zippy
 
         /**
          * @brief The Impl::ZipEntry class implements the functionality required for manipulating entries in a zip archive.
-         * @details The
+         * @details
          */
         class ZipEntry
         {
