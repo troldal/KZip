@@ -128,7 +128,7 @@ namespace Zippy
 
         /**
          * @brief Copy Constructor (deleted).
-         * @param other The object to copy
+         * @param other The object to copy.
          * @note The copy constructor has been deleted, because it is not obvious what should happen to the underlying .zip file
          * when copying the archive object. Instead, if sharing of the resource is required, a std::shared_ptr can be used.
          */
@@ -224,7 +224,7 @@ namespace Zippy
 
             // ===== Remove entries with identical names. The newest entries will be retained.
             auto isEqual = [](const Impl::ZipEntry& a, const Impl::ZipEntry& b) {
-                return a.Filename() == b.Filename();
+                return a.GetName() == b.GetName();
             };
             std::reverse(m_ZipEntries.begin(), m_ZipEntries.end());
             m_ZipEntries.erase(std::unique(m_ZipEntries.begin(), m_ZipEntries.end(), isEqual), m_ZipEntries.end());
@@ -264,12 +264,12 @@ namespace Zippy
             std::vector<std::string> result;
             for (auto& item : m_ZipEntries) {
                 if (includeDirs && item.IsDirectory()) {
-                    result.emplace_back(item.Filename());
+                    result.emplace_back(item.GetName());
                     continue;
                 }
 
                 if (includeFiles && !item.IsDirectory()) {
-                    result.emplace_back(item.Filename());
+                    result.emplace_back(item.GetName());
                     continue;
                 }
             }
@@ -342,7 +342,7 @@ namespace Zippy
 
             std::vector<ZipEntryMetaData> result;
             for (auto& item : m_ZipEntries) {
-                if (item.Filename().substr(0, dir.size()) != dir)
+                if (item.GetName().substr(0, dir.size()) != dir)
                     continue;
 
                 if (includeDirs && item.IsDirectory()) {
@@ -399,7 +399,7 @@ namespace Zippy
          * @brief Save the archive with a new name. The original archive will remain unchanged.
          * @param filename The new filename.
          * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
-         * @throwsx
+         * @throws ZipException A ZipException object is thrown if calls to miniz function fails.
          */
         void Save(std::string filename = "") {
 
@@ -422,7 +422,7 @@ namespace Zippy
 
                 else {
                     if (!mz_zip_writer_add_mem(&tempArchive,
-                                               file.Filename().c_str(),
+                                               file.GetName().c_str(),
                                                file.m_EntryData.data(),
                                                file.m_EntryData.size(),
                                                MZ_DEFAULT_COMPRESSION))
@@ -464,7 +464,7 @@ namespace Zippy
 
             m_ZipEntries
                     .erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                        return name == entry.Filename();
+                        return name == entry.GetName();
                     }), m_ZipEntries.end());
         }
 
@@ -477,7 +477,7 @@ namespace Zippy
 
             // ===== Look up ZipEntry object.
             auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                return name == entry.Filename();
+                return name == entry.GetName();
             });
 
             // ===== Extract the data from the archive to the ZipEntry object.
@@ -535,7 +535,7 @@ namespace Zippy
 
             // ===== Check if an entry with the given name already exists in the archive.
             auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                return name == entry.Filename();
+                return name == entry.GetName();
             });
 
             // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
@@ -559,7 +559,7 @@ namespace Zippy
 
             // ===== Check if an entry with the given name already exists in the archive.
             auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                return name == entry.Filename();
+                return name == entry.GetName();
             });
 
             // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
@@ -585,7 +585,7 @@ namespace Zippy
             // TODO: Ensure to check for self-asignment.
             // ===== Check if an entry with the given name already exists in the archive.
             auto result = std::find_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                return name == entry.Filename();
+                return name == entry.GetName();
             });
 
             // ===== If the entry exists, replace the existing data with the new data, and return the ZipEntry object.
