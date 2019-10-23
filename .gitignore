@@ -4,3 +4,6 @@ cmake*/
 
 # IDE Directories
 .idea/
+
+# System Directories
+.DS_Store
