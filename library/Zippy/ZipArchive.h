@@ -38,7 +38,7 @@
 #include <fstream>
 
 // ===== Other Includes
-#include <miniz.h>
+#include "miniz/miniz.h"
 #include "ZipException.h"
 #include "ZipEntry.h"
 

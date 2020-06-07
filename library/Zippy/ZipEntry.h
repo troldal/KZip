@@ -32,7 +32,7 @@
 #include <iostream>
 
 // ===== Other Includes
-#include <miniz.h>
+#include "miniz/miniz.h"
 
 namespace Zippy
 {

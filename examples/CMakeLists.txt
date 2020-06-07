@@ -2,4 +2,4 @@
 # Define Example1 target
 #=======================================================================================================================
 add_executable(Example1 example1.cpp)
-target_link_libraries(Example1 PRIVATE Zippy)
+target_link_libraries(Example1 PUBLIC Zippy)
