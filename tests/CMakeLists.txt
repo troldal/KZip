@@ -1,8 +1,18 @@
 #=======================================================================================================================
-# Define CATCH library target
+# Download and define Catch2 library target
 #=======================================================================================================================
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2)
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2/catch.hpp)
+    message(STATUS "Catch2 header file not found. Downloading...")
+    file(DOWNLOAD
+            https://raw.githubusercontent.com/catchorg/Catch2/master/single_include/catch2/catch.hpp
+            ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2/catch.hpp
+
+            TIMEOUT 60)
+endif()
+
 add_library(Catch INTERFACE)
-target_include_directories(Catch SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}/catch2)
+target_include_directories(Catch SYSTEM INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2)
 
 #=======================================================================================================================
 # Define TEST target
