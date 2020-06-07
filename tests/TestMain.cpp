@@ -10,13 +10,14 @@
 
 #define CATCH_CONFIG_RUNNER
 
-#include "catch.hpp"
+#include <catch.hpp>
 #include <iostream>
 #include <fstream>
 
 void CreateWinZipFile(const std::string& filename);
 
 int main(int argc, char* argv[]) {
+
     // Global Setup
     std::cout << std::endl;
     std::cout << "Creating .zip file made with WinZip..." << std::endl;
@@ -38,6 +39,7 @@ int main(int argc, char* argv[]) {
     return result;
 }
 
+// This is a binary representation of a .zip file created with WinZip.
 void CreateWinZipFile(const std::string& filename) {
 
     const unsigned char CreatedWithWinZip[6770] = {0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x02, 0x00, 0x08, 0x00, 0x21, 0xa8, 0x6e,

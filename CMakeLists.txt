@@ -1,14 +1,9 @@
 #=======================================================================================================================
 # Preamble
 #=======================================================================================================================
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_policy(SET CMP0092 NEW) # Enable setting custom warning level on MSVC
 project(Zippy C CXX)
-set(ZIPPY_INSTALLDIR ${CMAKE_CURRENT_BINARY_DIR}/install)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/install/bin)
-#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-#set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 
 #=======================================================================================================================
 # Set project metadata
@@ -26,20 +21,28 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Consider moving these to specific targets and/or make them optional
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
-#set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
+#=======================================================================================================================
+# Add build options
+#=======================================================================================================================
+
+# NOTE: Zippy is header-only, so without samples or the tests, there are not targets to be built.
+option(CREATE_DOCS "Build library documentation (requires Doxygen and Graphviz/Dot to be installed)" ON)
+option(BUILD_SAMPLES "Build sample programs" ON)
+option(BUILD_TESTS "Build and run library tests" ON)
 
 #=======================================================================================================================
 # Add project subdirectories
 #=======================================================================================================================
 add_subdirectory(library)
-add_subdirectory(examples)
-add_subdirectory(tests)
-add_subdirectory(doxy)
 
-#=======================================================================================================================
-# Define internal dependencies
-#=======================================================================================================================
-#add_dependencies(Example1 Zippy)
-#add_dependencies(ZippyTest Zippy)
+if(${CREATE_DOCS})
+    add_subdirectory(doxy)
+endif()
+
+if(${BUILD_TESTS})
+    add_subdirectory(tests)
+endif()
+
+if(${BUILD_SAMPLES})
+    add_subdirectory(examples)
+endif()
