@@ -4,18 +4,157 @@
 
 #include <catch.hpp>
 #include <Zippy.h>
+#include "test-data-text.hpp"
+#include "test-data-binary.hpp"
 
-TEST_CASE("Test 1: Create new archive") {
-    Zippy::ZipArchive archive;
-    archive.Create("TestArchive.zip");
-    archive.AddEntry("file.txt", "Text Data");
-    archive.Save();
-    archive.Close();
+// Add binary file to archive
+// Add folders to archive
+// Open existing archive
+// List contents in archive
 
-    archive.Open("TestArchive.zip");
-    REQUIRE(archive.HasEntry("file.txt"));
-    REQUIRE(archive.GetEntry("file.txt").GetDataAsString() == "Text Data");
+TEST_CASE("TEST 1: ARCHIVE CREATION") {
+
+    /**
+     * @brief Test if an empty ZipArchive object can be created, without an associated archive file.
+     */
+    SECTION("Create empty archive object") {
+        Zippy::ZipArchive archive;
+        REQUIRE(!archive.IsOpen());
+    }
+
+        /**
+         * @brief Test that trying to do operations on an empty archive object will throw an exception.
+         */
+    SECTION("Throws when trying to modify an empty archive object") {
+        Zippy::ZipArchive archive;
+        REQUIRE_THROWS(archive.GetEntryNames());
+        REQUIRE_THROWS(archive.GetEntryNamesInDir(""));
+        REQUIRE_THROWS(archive.GetMetaData());
+        REQUIRE_THROWS(archive.GetMetaDataInDir(""));
+        REQUIRE_THROWS(archive.GetNumEntries());
+        REQUIRE_THROWS(archive.GetNumEntriesInDir(""));
+        REQUIRE_THROWS(archive.HasEntry(""));
+        REQUIRE_THROWS(archive.Save());
+        REQUIRE_THROWS(archive.DeleteEntry(""));
+        REQUIRE_THROWS(archive.GetEntry(""));
+        REQUIRE_THROWS(archive.ExtractEntry("", ""));
+        REQUIRE_THROWS(archive.ExtractDir("", ""));
+        REQUIRE_THROWS(archive.ExtractAll(""));
+        REQUIRE_THROWS(archive.AddEntry("Entry.txt", "TEST"));
+    }
+
+        /**
+         * @brief
+         */
+    SECTION("Create empty archive file") {
+        Zippy::ZipArchive archive;
+        archive.Create("TestArchive.zip");
+        REQUIRE(archive.IsOpen());
+        REQUIRE(archive.GetEntryNames().empty());
+        REQUIRE(archive.GetEntryNamesInDir("").empty());
+        REQUIRE(archive.GetMetaData().empty());
+        REQUIRE(archive.GetMetaDataInDir("").empty());
+        REQUIRE(archive.GetNumEntries() == 0);
+        REQUIRE(archive.GetNumEntriesInDir("") == 0);
+    }
+
 }
+
+TEST_CASE("TEST 2: ADD DATA TO ARCHIVE") {
+
+    /**
+     * @brief
+     */
+    SECTION("Add text data to archive") {
+        Zippy::ZipArchive archive;
+        std::string archivePath = "./TestArchive.zip";
+        std::string entryName = "text_data.txt";
+        std::string entryData = txtdata;
+
+        archive.Create(archivePath);
+        archive.AddEntry(entryName, entryData);
+        REQUIRE(archive.IsOpen());
+        REQUIRE(archive.GetEntryNames().size() == 1);
+        REQUIRE(archive.GetEntryNames().at(0) == entryName);
+        REQUIRE(archive.GetEntryNamesInDir("").size() == 1);
+        REQUIRE(archive.GetEntryNamesInDir("").at(0) == entryName);
+        REQUIRE(archive.GetMetaData().size() == 1);
+        REQUIRE(archive.GetMetaData().at(0).Filename == entryName);
+        REQUIRE(archive.GetMetaDataInDir("").size() == 1);
+        REQUIRE(archive.GetMetaDataInDir("").at(0).Filename == entryName);
+        REQUIRE(archive.GetNumEntries() == 1);
+        REQUIRE(archive.GetNumEntriesInDir("") == 1);
+        REQUIRE(archive.HasEntry(entryName));
+        REQUIRE(archive.GetEntry(entryName).GetDataAsString() == entryData);
+
+        archive.Save();
+        archive.Close();
+        archive.Open(archivePath);
+        REQUIRE(archive.IsOpen());
+        REQUIRE(archive.GetEntryNames().size() == 1);
+        REQUIRE(archive.GetEntryNames().at(0) == entryName);
+        REQUIRE(archive.GetEntryNamesInDir("").size() == 1);
+        REQUIRE(archive.GetEntryNamesInDir("").at(0) == entryName);
+        REQUIRE(archive.GetMetaData().size() == 1);
+        REQUIRE(archive.GetMetaData().at(0).Filename == entryName);
+        REQUIRE(archive.GetMetaDataInDir("").size() == 1);
+        REQUIRE(archive.GetMetaDataInDir("").at(0).Filename == entryName);
+        REQUIRE(archive.GetNumEntries() == 1);
+        REQUIRE(archive.GetNumEntriesInDir("") == 1);
+        REQUIRE(archive.HasEntry(entryName));
+        REQUIRE(archive.GetEntry(entryName).GetDataAsString() == entryData);
+    }
+
+    /**
+     * @brief
+     */
+    SECTION("Add binary data to archive") {
+        Zippy::ZipArchive archive;
+        std::string archivePath = "./TestArchive.zip";
+        std::string entryName = "binary_data.png";
+        auto entryData = bindata;
+
+        archive.Create(archivePath);
+        archive.AddEntry(entryName, entryData);
+        REQUIRE(archive.IsOpen());
+        REQUIRE(archive.GetEntryNames().size() == 1);
+        REQUIRE(archive.GetEntryNames().at(0) == entryName);
+        REQUIRE(archive.GetEntryNamesInDir("").size() == 1);
+        REQUIRE(archive.GetEntryNamesInDir("").at(0) == entryName);
+        REQUIRE(archive.GetMetaData().size() == 1);
+        REQUIRE(archive.GetMetaData().at(0).Filename == entryName);
+        REQUIRE(archive.GetMetaDataInDir("").size() == 1);
+        REQUIRE(archive.GetMetaDataInDir("").at(0).Filename == entryName);
+        REQUIRE(archive.GetNumEntries() == 1);
+        REQUIRE(archive.GetNumEntriesInDir("") == 1);
+        REQUIRE(archive.HasEntry(entryName));
+        REQUIRE(archive.GetEntry(entryName).GetData() == entryData);
+
+        archive.Save();
+        archive.Close();
+        archive.Open(archivePath);
+        REQUIRE(archive.IsOpen());
+        REQUIRE(archive.GetEntryNames().size() == 1);
+        REQUIRE(archive.GetEntryNames().at(0) == entryName);
+        REQUIRE(archive.GetEntryNamesInDir("").size() == 1);
+        REQUIRE(archive.GetEntryNamesInDir("").at(0) == entryName);
+        REQUIRE(archive.GetMetaData().size() == 1);
+        REQUIRE(archive.GetMetaData().at(0).Filename == entryName);
+        REQUIRE(archive.GetMetaDataInDir("").size() == 1);
+        REQUIRE(archive.GetMetaDataInDir("").at(0).Filename == entryName);
+        REQUIRE(archive.GetNumEntries() == 1);
+        REQUIRE(archive.GetNumEntriesInDir("") == 1);
+        REQUIRE(archive.HasEntry(entryName));
+        REQUIRE(archive.GetEntry(entryName).GetData() == entryData);
+    }
+}
+
+
+
+
+
+// =============
+
 
 TEST_CASE("Test 2: Open existing archive") {
 

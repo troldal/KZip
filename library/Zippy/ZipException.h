@@ -33,11 +33,11 @@ namespace Zippy
 {
 
     /**
-     * @brief The ZipException class is a custom exception class derived from the std::runtime_error class.
-     * @details In case of an error in the Zippy library, an ZipException object will be thrown, with a message
+     * @brief The ZipRuntimeError class is a custom exception class derived from the std::runtime_error class.
+     * @details In case of an error in the Zippy library, an ZipRuntimeError object will be thrown, with a message
      * describing the details of the error.
      */
-    class ZipException : public std::runtime_error
+    class ZipRuntimeError : public std::runtime_error
     {
     public:
 
@@ -45,15 +45,38 @@ namespace Zippy
          * @brief Constructor.
          * @param err A string with a description of the error.
          */
-        inline explicit ZipException(const std::string& err)
+        inline explicit ZipRuntimeError(const std::string& err)
                 : runtime_error(err) {
         }
 
         /**
          * @brief Destructor.
          */
-        inline ~ZipException() override = default;
+        inline ~ZipRuntimeError() override = default;
     };
+
+    /**
+     * @brief
+     */
+    class ZipLogicError : public std::logic_error
+    {
+    public:
+        /**
+         * @brief
+         * @param err
+         */
+        inline explicit ZipLogicError(const std::string& err)
+                : logic_error(err) {
+
+        }
+
+        /**
+         * @brief
+         */
+        inline ~ZipLogicError() override = default;
+    };
+
+
 } // namespace Zippy
 
 

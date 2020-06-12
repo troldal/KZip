@@ -32,6 +32,7 @@
 #include <iostream>
 
 // ===== Other Includes
+#include "ZipUtilities.hpp"
 #include <miniz.h>
 
 namespace Zippy
@@ -53,10 +54,10 @@ namespace Zippy
     /**
      * @brief The ZipEntryData entity is an alias for a std::vector of std::bytes.
      * @details This is used as a generic container of file data of any kind, both character strings and binary.
-     * A vector of char or an array of char can also be used, but a vector pf bytes makes it clearer that it can
+     * A vector of char or an array of char can also be used, but a vector of bytes makes it clearer that it can
      * also be used for non-text data.
      */
-    using ZipEntryData = std::vector<std::byte>;
+    using ZipEntryData = std::vector<unsigned char>;
 
     /**
      * @brief The ZipEntryMetaData is essentially a wrapper around the ZipEntryInfo scruct, which is an alias for a
@@ -152,8 +153,8 @@ namespace Zippy
 
                 // ===== Copy the string data to the m_EntryData member and set the m_IsModified flag to true.
                 m_EntryData.reserve(data.size());
-                for (auto& ch : data)
-                    m_EntryData.emplace_back(static_cast<std::byte>(ch));
+                for (const auto & ch : data)
+                    m_EntryData.emplace_back(ch);
                 m_IsModified = true;
             }
 
@@ -211,8 +212,8 @@ namespace Zippy
             std::string GetDataAsString() const {
 
                 std::string result;
-                for (auto& ch : m_EntryData)
-                    result += static_cast<char>(ch);
+                for (const auto & ch : m_EntryData)
+                    result += static_cast<char>(ch); // TODO: Should this use reinterpret_cast instead?
 
                 return result;
             }
@@ -225,8 +226,8 @@ namespace Zippy
 
                 ZipEntryData result;
 
-                for (auto& ch : data)
-                    result.push_back(static_cast<std::byte>(ch));
+                for (const auto & ch : data)
+                    result.push_back(ch);
 
                 m_EntryData  = result;
                 m_IsModified = true;
@@ -433,14 +434,12 @@ namespace Zippy
         // ===== Constructors, Destructor and Operators
 
         /**
-         * @brief Constructor. Creates a new ZipEntry with the given ZipEntryInfo parameter. This is only used for creating
-         * a ZipEntry for an entry already present in the ZipArchive.
+         * @brief Constructor. Creates a new ZipEntry.
          * @param entry A raw (non-owning) pointer to the existing Impl::ZipEntry object.
          * @todo Can this be made private?
          */
         explicit ZipEntry(Impl::ZipEntry* entry)
                 : m_ZipEntry(entry) {
-
         }
 
         /**
