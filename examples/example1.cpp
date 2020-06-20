@@ -75,7 +75,7 @@ void CreateArchive() {
 
     Zippy::ZipEntryData data;
     for (auto ch : image)
-        data.emplace_back(static_cast<std::byte>(ch));
+        data.emplace_back(ch);
 
     arch.AddEntry("Image.png", data);
 
