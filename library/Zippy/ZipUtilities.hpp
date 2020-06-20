@@ -14,7 +14,7 @@ namespace Zippy::Impl
      * @param length The length of the filename to create.
      * @return Returns the generated filenamen, appended with '.tmp'.
      */
-    std::string GenerateRandomName(int length) {
+    inline std::string GenerateRandomName(int length) {
 
         std::string letters = "abcdefghijklmnopqrstuvwxyz0123456789";
 
