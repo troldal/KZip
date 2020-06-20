@@ -23,8 +23,8 @@
 
  */
 
-#ifndef MINIZ_ZIPEXCEPTION_H
-#define MINIZ_ZIPEXCEPTION_H
+#ifndef MINIZ_ZIPEXCEPTION_HPP
+#define MINIZ_ZIPEXCEPTION_HPP
 
 // ===== Standard Library Includes
 #include <stdexcept>
@@ -80,4 +80,4 @@ namespace Zippy
 } // namespace Zippy
 
 
-#endif //MINIZ_ZIPEXCEPTION_H
+#endif //MINIZ_ZIPEXCEPTION_HPP

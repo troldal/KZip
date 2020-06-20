@@ -23,8 +23,8 @@
 
  */
 
-#ifndef Zippy_ZIPARCHIVE_H
-#define Zippy_ZIPARCHIVE_H
+#ifndef Zippy_ZIPARCHIVE_HPP
+#define Zippy_ZIPARCHIVE_HPP
 
 // ===== Standard Library Includes
 #include <string>
@@ -39,8 +39,8 @@
 
 // ===== Other Includes
 #include "miniz/miniz.h"
-#include "ZipException.h"
-#include "ZipEntry.h"
+#include "ZipException.hpp"
+#include "ZipEntry.hpp"
 
 namespace Zippy
 {
@@ -690,4 +690,4 @@ namespace Zippy
     };
 }  // namespace Zippy
 
-#endif //Zippy_ZIPARCHIVE_H
+#endif //Zippy_ZIPARCHIVE_HPP

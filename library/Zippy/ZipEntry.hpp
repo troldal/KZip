@@ -23,8 +23,8 @@
 
  */
 
-#ifndef Zippy_ZIPENTRY_H
-#define Zippy_ZIPENTRY_H
+#ifndef Zippy_ZIPENTRY_HPP
+#define Zippy_ZIPENTRY_HPP
 
 // ===== Standard Library Includes
 #include <string>
@@ -612,4 +612,4 @@ namespace Zippy
     };
 }  // namespace Zippy
 
-#endif //Zippy_ZIPENTRY_H
+#endif //Zippy_ZIPENTRY_HPP
