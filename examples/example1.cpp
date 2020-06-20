@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include <Zippy.h>
+#include <Zippy.hpp>
 #include "tableprinter.h"
 #include "image.h"
 

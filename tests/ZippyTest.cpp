@@ -3,7 +3,7 @@
 //
 
 #include <catch.hpp>
-#include <Zippy.h>
+#include <Zippy.hpp>
 #include "test-data-text.hpp"
 #include "test-data-binary.hpp"
 
