@@ -460,6 +460,7 @@ namespace Zippy
 
             // ===== Iterate through the ZipEntries and add entries to the temporary file
             for (auto& file : m_ZipEntries) {
+                if (file.IsDirectory()) continue; //TODO: Ensure this is the right thing to do (Excel issue)
                 if (!file.IsModified()) {
                     if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_Archive, file.Index()))
                         throw ZipRuntimeError(mz_zip_get_error_string(m_Archive.m_last_error));
