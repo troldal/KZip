@@ -37,6 +37,10 @@
 #include <memory>
 #include <fstream>
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 // ===== Other Includes
 #include "miniz/miniz.h"
 #include "ZipException.hpp"
