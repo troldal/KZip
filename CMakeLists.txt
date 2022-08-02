@@ -33,7 +33,7 @@ option(BUILD_TESTS "Build and run library tests" ON)
 #=======================================================================================================================
 # Add project subdirectories
 #=======================================================================================================================
-add_subdirectory(library)
+add_subdirectory(KZip)
 
 if(${CREATE_DOCS})
     add_subdirectory(doxy)

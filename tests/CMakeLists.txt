@@ -1,5 +1,5 @@
 #=======================================================================================================================
-# Download and define Catch2 library target
+# Download and define Catch2 KZip target
 #=======================================================================================================================
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2)
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/_deps/Catch2/catch.hpp)

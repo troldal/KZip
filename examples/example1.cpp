@@ -2,10 +2,10 @@
 // Created by Troldal on 2019-03-10.
 //
 
-#include <iostream>
-#include <Zippy.hpp>
 #include "tableprinter.h"
 #include "image.h"
+#include <KZip.hpp>
+#include <iostream>
 
 using namespace std;
 
@@ -26,10 +26,10 @@ const string ArchiveName = "./TestArchive.zip";
 
 // ===== Function Declarations
 void CreateArchive();
-void ModifyArchive();
-void PrintArchiveLayout();
-void PrintArchiveStats();
-void PrintLayout(const Zippy::ZipArchive& arch, const std::string& folder = "", const std::string& indent = "");
+//void ModifyArchive();
+//void PrintArchiveLayout();
+//void PrintArchiveStats();
+//void PrintLayout(const KZip::ZipArchive& arch, const std::string& folder = "", const std::string& indent = "");
 
 int main() {
 
@@ -37,120 +37,120 @@ int main() {
     CreateArchive();
 
     // ===== Print archive layout
-    PrintArchiveLayout();
+//    PrintArchiveLayout();
 
     // ===== Print archive statistics
-    PrintArchiveStats();
+//    PrintArchiveStats();
 
     return 0;
 }
 
 void CreateArchive() {
     // ===== Creating empty archive
-    Zippy::ZipArchive arch;
-    arch.Create(ArchiveName);
+    KZip::ZipArchive arch;
+    arch.create(ArchiveName);
 
     // ===== Adding 20 entries to the archive
     //arch.AddEntry("Folder/","");
-    arch.AddEntry("File 0.txt", str0);
-    arch.AddEntry("File 1.txt", str1);
-    arch.AddEntry("File 2.txt", str2);
-    arch.AddEntry("File 3.txt", str3);
-    arch.AddEntry("File 4.txt", str4);
-    arch.AddEntry("File 5.txt", str5);
-    arch.AddEntry("File 6.txt", str6);
-    arch.AddEntry("File 7.txt", str7);
-    arch.AddEntry("File 8.txt", str8);
-    arch.AddEntry("File 9.txt", str9);
-    arch.AddEntry("Folder0/Sub0/SubSub0/File 0.txt", str0);
-    arch.AddEntry("Folder0/Sub0/File 1.txt", str1);
-    arch.AddEntry("Folder2/File 2.txt", str2);
-    arch.AddEntry("Folder3/File 3.txt", str3);
-    arch.AddEntry("Folder4/File 4.txt", str4);
-    arch.AddEntry("Folder5/File 5.txt", str5);
-    arch.AddEntry("Folder6/File 6.txt", str6);
-    arch.AddEntry("Folder7/File 7.txt", str7);
-    arch.AddEntry("Folder8/File 8.txt", str8);
-    arch.AddEntry("Folder9/File 9.txt", str9);
+    arch.addEntry("File 0.txt", str0);
+    arch.addEntry("File 1.txt", str1);
+    arch.addEntry("File 2.txt", str2);
+    arch.addEntry("File 3.txt", str3);
+    arch.addEntry("File 4.txt", str4);
+    arch.addEntry("File 5.txt", str5);
+    arch.addEntry("File 6.txt", str6);
+    arch.addEntry("File 7.txt", str7);
+    arch.addEntry("File 8.txt", str8);
+    arch.addEntry("File 9.txt", str9);
+    arch.addEntry("Folder0/Sub0/SubSub0/File 0.txt", str0);
+    arch.addEntry("Folder0/Sub0/File 1.txt", str1);
+    arch.addEntry("Folder2/File 2.txt", str2);
+    arch.addEntry("Folder3/File 3.txt", str3);
+    arch.addEntry("Folder4/File 4.txt", str4);
+    arch.addEntry("Folder5/File 5.txt", str5);
+    arch.addEntry("Folder6/File 6.txt", str6);
+    arch.addEntry("Folder7/File 7.txt", str7);
+    arch.addEntry("Folder8/File 8.txt", str8);
+    arch.addEntry("Folder9/File 9.txt", str9);
 
-    Zippy::ZipEntryData data;
-    for (auto ch : image)
-        data.emplace_back(ch);
+    KZip::ZipEntryData data;
+    for (auto byte : image)
+        data.emplace_back(byte);
 
-    arch.AddEntry("Image.png", data);
+    arch.addEntry("Image.png", data);
 
     // ===== Save and close the archive
-    arch.Save();
-    arch.Close();
+    arch.save();
+    arch.close();
 }
 
-void PrintLayout(const Zippy::ZipArchive& arch, const std::string& folder, const std::string& indent) {
-
-    if (folder.empty())
-        cout << "Root/" << endl;
-    else
-        if (std::count(folder.begin(), folder.end(), '/') <= 1)
-            cout << indent << folder << endl;
-        else
-            cout << indent << folder.substr(folder.rfind('/', folder.size() - 2)) <<  endl;
-
-    for (auto &file : arch.GetEntryNamesInDir(folder, false, true)) {
-        if (std::count(file.begin(), file.end(), '/') == 0)
-            cout << indent + "\t" << file << endl;
-        else
-            cout << indent + "\t" << file.substr(file.rfind('/') + 1) << endl;
-    }
-
-    for (auto &subfolder : arch.GetEntryNamesInDir(folder, true, false)) {
-        PrintLayout(arch, subfolder, indent + "\t");
-    }
-}
-
-void PrintArchiveLayout() {
-    Zippy::ZipArchive arch;
-    arch.Open(ArchiveName);
-
-    PrintLayout(arch);
-    cout << endl;
-}
-
-void PrintArchiveStats() {
-    // ===== Open and check contents
-    Zippy::ZipArchive arch;
-    arch.Open(ArchiveName);
-
-    TablePrinter::TablePrinter tp(&std::cout);
-    tp.AddColumn("Index", 6);
-    tp.set_flush_left();
-    tp.AddColumn("File", 40);
-    tp.set_flush_right();
-    tp.AddColumn("Uncompressed Size", 18);
-    tp.AddColumn("Compressed Size", 16);
-    tp.AddColumn("Dir", 5);
-    tp.AddColumn("Time Stamp", 20);
-
-    tp.PrintHeader();
-
-    for (auto &name : arch.GetEntryNames()) {
-        //string name = item;
-        auto entry = arch.GetEntry(name);
-        char mbstr[100];
-        std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&entry.Time()));
-        string str = mbstr;
-
-        tp << entry.Index();
-        tp.set_flush_left();
-        tp << entry.Filename();
-        tp.set_flush_right();
-        tp << entry.UncompressedSize()
-           << entry.CompressedSize()
-           << (entry.IsDirectory() ? "Y" : "N")
-           << str;
-    }
-
-    tp.PrintFooter();
-
-    arch.ExtractEntry("Image.png", "./");
-
-    arch.Close();
-}
+//void PrintLayout(const KZip::ZipArchive& arch, const std::string& folder, const std::string& indent) {
+//
+//    if (folder.empty())
+//        cout << "Root/" << endl;
+//    else
+//        if (std::count(folder.begin(), folder.end(), '/') <= 1)
+//            cout << indent << folder << endl;
+//        else
+//            cout << indent << folder.substr(folder.rfind('/', folder.size() - 2)) <<  endl;
+//
+//    for (auto &file : arch.GetEntryNamesInDir(folder, false, true)) {
+//        if (std::count(file.begin(), file.end(), '/') == 0)
+//            cout << indent + "\t" << file << endl;
+//        else
+//            cout << indent + "\t" << file.substr(file.rfind('/') + 1) << endl;
+//    }
+//
+//    for (auto &subfolder : arch.GetEntryNamesInDir(folder, true, false)) {
+//        PrintLayout(arch, subfolder, indent + "\t");
+//    }
+//}
+//
+//void PrintArchiveLayout() {
+//    KZip::ZipArchive arch;
+//    arch.Open(ArchiveName);
+//
+//    PrintLayout(arch);
+//    cout << endl;
+//}
+//
+//void PrintArchiveStats() {
+//    // ===== Open and check contents
+//    KZip::ZipArchive arch;
+//    arch.Open(ArchiveName);
+//
+//    TablePrinter::TablePrinter tp(&std::cout);
+//    tp.AddColumn("Index", 6);
+//    tp.set_flush_left();
+//    tp.AddColumn("File", 40);
+//    tp.set_flush_right();
+//    tp.AddColumn("Uncompressed Size", 18);
+//    tp.AddColumn("Compressed Size", 16);
+//    tp.AddColumn("Dir", 5);
+//    tp.AddColumn("Time Stamp", 20);
+//
+//    tp.PrintHeader();
+//
+//    for (auto &name : arch.GetEntryNames()) {
+//        //string name = item;
+//        auto entry = arch.GetEntry(name);
+//        char mbstr[100];
+//        std::strftime(mbstr, sizeof(mbstr), "%F %T", std::localtime(&entry.Time()));
+//        string str = mbstr;
+//
+//        tp << entry.Index();
+//        tp.set_flush_left();
+//        tp << entry.Filename();
+//        tp.set_flush_right();
+//        tp << entry.UncompressedSize()
+//           << entry.CompressedSize()
+//           << (entry.IsDirectory() ? "Y" : "N")
+//           << str;
+//    }
+//
+//    tp.PrintFooter();
+//
+//    arch.ExtractEntry("Image.png", "./");
+//
+//    arch.Close();
+//}

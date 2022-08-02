@@ -1,5 +1,5 @@
-# Zippy
-Zippy is a simple C++ wrapper around the 'miniz' zip library. It allows for creating, reading and modifying zip archives.
+# KZip
+KZip is a simple C++ wrapper around the 'miniz' zip library. It allows for creating, reading and modifying zip archives.
 
 The underlying 'miniz' library is included and Zippy is therefore completely self-contained; it does not rely on zlib, minizip, libzip or any other external libraries.
 

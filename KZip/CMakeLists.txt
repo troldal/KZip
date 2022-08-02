@@ -1,5 +1,6 @@
 #=======================================================================================================================
-# Define MINIZ library target
+# Define Zippy KZip targets
 #=======================================================================================================================
-add_library(miniz INTERFACE)
-target_include_directories(miniz SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR})
+add_library(KZip INTERFACE)
+add_library(KZip::KZip ALIAS KZip)
+target_include_directories(KZip INTERFACE ${CMAKE_CURRENT_LIST_DIR})
