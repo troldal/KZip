@@ -3,7 +3,7 @@
 #=======================================================================================================================
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 cmake_policy(SET CMP0092 NEW) # Enable setting custom warning level on MSVC
-project(Zippy C CXX)
+project(KZip C CXX)
 
 #=======================================================================================================================
 # Set project metadata

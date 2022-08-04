@@ -51,33 +51,37 @@ void CreateArchive() {
     arch.create(ArchiveName);
 
     // ===== Adding 20 entries to the archive
-    //arch.AddEntry("Folder/","");
-    arch.addEntry("File 0.txt", str0);
-    arch.addEntry("File 1.txt", str1);
-    arch.addEntry("File 2.txt", str2);
-    arch.addEntry("File 3.txt", str3);
-    arch.addEntry("File 4.txt", str4);
-    arch.addEntry("File 5.txt", str5);
-    arch.addEntry("File 6.txt", str6);
-    arch.addEntry("File 7.txt", str7);
-    arch.addEntry("File 8.txt", str8);
-    arch.addEntry("File 9.txt", str9);
-    arch.addEntry("Folder0/Sub0/SubSub0/File 0.txt", str0);
-    arch.addEntry("Folder0/Sub0/File 1.txt", str1);
-    arch.addEntry("Folder2/File 2.txt", str2);
-    arch.addEntry("Folder3/File 3.txt", str3);
-    arch.addEntry("Folder4/File 4.txt", str4);
-    arch.addEntry("Folder5/File 5.txt", str5);
-    arch.addEntry("Folder6/File 6.txt", str6);
-    arch.addEntry("Folder7/File 7.txt", str7);
-    arch.addEntry("Folder8/File 8.txt", str8);
-    arch.addEntry("Folder9/File 9.txt", str9);
+    arch.addEntry("File 0.txt") = str0;
+    arch.addEntry("File 1.txt") = str1;
+    arch.addEntry("File 2.txt") = str2;
+    arch.addEntry("File 3.txt") = str3;
+    arch.addEntry("File 4.txt") = str4;
+    arch.addEntry("File 5.txt") = str5;
+    arch.addEntry("File 6.txt") = str6;
+    arch.addEntry("File 7.txt") = str7;
+    arch.addEntry("File 8.txt") = str8;
+    arch.addEntry("File 9.txt") = str9;
+    arch.addEntry("Folder0/Sub0/SubSub0/File 0.txt") = str0;
+    arch.addEntry("Folder0/Sub0/File 1.txt") = str1;
+    arch.addEntry("Folder2/File 2.txt") = str2;
+    arch.addEntry("Folder3/File 3.txt") = str3;
+    arch.addEntry("Folder4/File 4.txt") = str4;
+    arch.addEntry("Folder5/File 5.txt") = str5;
+    arch.addEntry("Folder6/File 6.txt") = str6;
+    arch.addEntry("Folder7/File 7.txt") = str7;
+    arch.addEntry("Folder8/File 8.txt") = str8;
+    arch.addEntry("Folder9/File 9.txt") = str9;
 
     KZip::ZipEntryData data;
     for (auto byte : image)
         data.emplace_back(byte);
 
-    arch.addEntry("Image.png", data);
+    arch.addEntry("Image.png") = data;
+
+    arch.entry("File 0.txt") = arch.entry("File 1.txt");
+
+    std::string res = arch.entry("File 0.txt");
+    std::cout << res << std::endl;
 
     // ===== Save and close the archive
     arch.save();
