@@ -12,9 +12,14 @@
 #pragma warning(disable : 4242)
 #pragma warning(disable : 4244)
 
+// ===== External Includes =====
+#include "deps/miniz.h"
+
+// ===== Standard Includes =====
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -29,10 +34,6 @@
 #ifdef _WIN32
 #    include <direct.h>
 #endif
-
-#include "deps/nowide/cstdio.hpp"
-#include "deps/miniz.h"
-#include <filesystem>
 
 namespace KZip
 {
@@ -148,14 +149,40 @@ namespace KZip
      */
     class ZipEntry
     {
+        friend class ZipEntryProxy;
     public:
 
         /**
          * @brief
-         * @param archive
-         * @param info
+         * @param filename
          */
-        ZipEntry(mz_zip_archive* archive, mz_zip_archive_file_stat info) : m_archive(archive), m_info(info) {}
+        ZipEntry(const std::string& filename) {
+            m_info.m_file_index       = 0;
+            m_info.m_central_dir_ofs  = 0;
+            m_info.m_version_made_by  = 0;
+            m_info.m_version_needed   = 0;
+            m_info.m_bit_flag         = 0;
+            m_info.m_method           = 0;
+            m_info.m_time             = std::time(nullptr);
+            m_info.m_crc32            = 0;
+            m_info.m_comp_size        = 0;
+            m_info.m_uncomp_size      = 0;
+            m_info.m_internal_attr    = 0;
+            m_info.m_external_attr    = 0;
+            m_info.m_local_header_ofs = 0;
+            m_info.m_comment_size     = 0;
+            m_info.m_is_directory     = (filename.back() == '/');
+            m_info.m_is_encrypted     = false;
+            m_info.m_is_supported     = true;
+
+#if _MSC_VER    // On MSVC, use the safe version of strcpy
+            strcpy_s(m_info.m_filename, sizeof m_info.m_filename, filename.c_str());
+            strcpy_s(m_info.m_comment, sizeof m_info.m_comment, "");
+#else    // Otherwise, use the unsafe version as fallback :(
+            strncpy(m_info.m_filename, filename.c_str(), sizeof m_info.m_filename);    // NOLINT
+            strncpy(m_info.m_comment, "", sizeof m_info.m_comment);                // NOLINT
+#endif
+        }
 
         /**
          * @brief
@@ -198,7 +225,8 @@ namespace KZip
         template<typename T, typename std::enable_if<std::is_convertible_v<typename T::value_type, unsigned char>>::type* = nullptr>
         ZipEntry& operator=(T data)
         {
-            // TODO(troldal): To be implemented
+            setData(data);
+            return *this;
         }
 
         /**
@@ -209,7 +237,12 @@ namespace KZip
         template<typename T, typename std::enable_if<std::is_convertible_v<typename T::value_type, unsigned char>>::type* = nullptr>
         void setData(T data)
         {
-            // TODO(troldal): To be implemented
+            if constexpr (std::is_same_v<T, std::vector<unsigned char> >)
+                m_data = data;
+
+            else {
+                m_data = std::vector<unsigned char> {data.begin(), data.end()};
+            }
         }
 
         /**
@@ -225,6 +258,7 @@ namespace KZip
         template<typename T, typename std::enable_if<std::is_convertible_v<typename T::value_type, unsigned char>>::type* = nullptr>
         T getData() const
         {
+            if (!m_data.has_value()) return {};
             return {m_data->begin(), m_data->end()};
         }
 
@@ -237,7 +271,7 @@ namespace KZip
          * @return An object of type T, holding the zip data.
          */
         template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type>>::type* = nullptr>
-        operator T() const
+        operator T() const // NOLINT
         {    // NOLINT
             return getData<T>();
         }
@@ -247,7 +281,31 @@ namespace KZip
          */
         void erase()
         {
-            // TODO(troldal): To be implemented
+            if(m_data) m_data.reset();
+        }
+
+        /**
+         * @brief
+         * @return
+         */
+        std::string_view getName() const {
+            return {m_info.m_filename};
+        }
+
+        /**
+         * @brief
+         * @param filename
+         */
+        void setName(const std::string& entryname) {
+            if (entryname.empty()) throw ZipLogicError("Entry name must not be empty");
+
+#if _MSC_VER    // On MSVC, use the safe version of strcpy
+            strcpy_s(m_info.m_filename, sizeof m_info.m_filename, entryname.c_str());
+            strcpy_s(m_info.m_comment, sizeof m_info.m_comment, "");
+#else    // Otherwise, use the unsafe version as fallback :(
+            strncpy(m_info.m_filename, entryname.c_str(), sizeof m_info.m_filename);    // NOLINT
+            strncpy(m_info.m_comment, "", sizeof m_info.m_comment);                // NOLINT
+#endif
         }
 
         /**
@@ -258,6 +316,14 @@ namespace KZip
 
 
     private:
+
+        /**
+         * @brief
+         * @param archive
+         * @param info
+         */
+        ZipEntry(std::vector<unsigned char> data, mz_zip_archive_file_stat info) : m_data(data), m_info(info) {}
+
         //---------- Private Member Variables ---------- //
         mz_zip_archive_file_stat m_info    = mz_zip_archive_file_stat(); /**< File stats for the entry. */
         std::optional<std::vector<unsigned char> > m_data = {};
@@ -394,13 +460,13 @@ namespace KZip
         }
 
         operator ZipEntry() { // NOLINT
-
+            return {getData<std::vector<unsigned char>>(), m_info};
         }
 
         /**
          * @brief
          */
-        void erase()
+        void clear()
         {
             // TODO(troldal): To be implemented
         }
