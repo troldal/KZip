@@ -93,7 +93,7 @@ namespace KZip
     /**
      * @brief
      */
-    enum class ZipFlags : uint8_t { IncludeFiles = 1, IncludeDirectories = 2 };
+    enum class ZipFlags : uint8_t { Files = 1, Directories = 2 };
 
     /**
      * @brief
@@ -156,7 +156,7 @@ namespace KZip
          * @brief
          * @param filename
          */
-        ZipEntry(const std::string& filename) {
+        explicit ZipEntry(const std::string& filename) {
             m_info.m_file_index       = 0;
             m_info.m_central_dir_ofs  = 0;
             m_info.m_version_made_by  = 0;
@@ -209,7 +209,6 @@ namespace KZip
          * @return
          */
         ZipEntry& operator=(ZipEntry&& other) noexcept = default;
-
 
         /**
          * @brief
@@ -288,7 +287,7 @@ namespace KZip
          * @brief
          * @return
          */
-        std::string_view getName() const {
+        std::string_view name() const {
             return {m_info.m_filename};
         }
 
@@ -314,6 +313,21 @@ namespace KZip
          */
         ZipEntryMetaData metadata() const { return ZipEntryMetaData(m_info); }
 
+        /**
+         * @brief
+         * @tparam T
+         * @param other
+         * @return
+         */
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type> ||
+                                                     std::is_same_v<std::decay_t<T>, const char*> ||
+                                                     std::is_same_v<std::decay_t<T>, char*> >::type* = nullptr>
+        bool operator==(const T& other) const // NOLINT
+        {
+            auto data = getData<T>();
+            auto result = std::mismatch(other.begin(), other.end(), data.begin());
+            return (result.first == other.end() || result.second == data.end());
+        }
 
     private:
 
@@ -471,11 +485,25 @@ namespace KZip
             // TODO(troldal): To be implemented
         }
 
+        std::string_view name() const {
+            return {m_info.m_filename};
+        }
+
         /**
          * @brief
          * @return
          */
         ZipEntryMetaData metadata() const { return ZipEntryMetaData(m_info); }
+
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type> ||
+                                                     std::is_same_v<std::decay_t<T>, const char*> ||
+                                                     std::is_same_v<std::decay_t<T>, char*> >::type* = nullptr>
+        bool operator==(const T& other) const // NOLINT
+        {
+            auto data = getData<T>();
+            auto result = std::mismatch(other.begin(), other.end(), data.begin());
+            return (result.first == other.end() || result.second == data.end());
+        }
 
     private:
         //---------- Private Member Functions ---------- //
@@ -522,13 +550,21 @@ namespace KZip
             return m_data.has_value();
         }
 
+        /**
+         * @brief
+         * @return
+         */
         uint64_t size() const {
             if (isUpdated())
-                return m_data.value().size();
+                return m_data.has_value() ? m_data.value().size() : 0;
 
             return m_info.m_uncomp_size;
         }
 
+        /**
+         * @brief
+         * @return
+         */
         const std::vector<unsigned char>& rawData() const {
             return m_data.value();
         }
@@ -537,18 +573,36 @@ namespace KZip
         mz_zip_archive*          m_archive = nullptr;
         mz_zip_archive_file_stat m_info    = mz_zip_archive_file_stat(); /**< File stats for the entry. */
         std::optional<std::vector<unsigned char> > m_data = {};
-    };
+    }; // ZipEntryProxy
+
+
 
     namespace Impl
     {
+        /**
+         * @brief
+         */
         class ZipEntryWrapper {
         public:
-            ZipEntryWrapper(const ZipEntryProxy& entry) : m_entry(entry) {}
 
+            /**
+             * @brief
+             * @param entry
+             */
+            explicit ZipEntryWrapper(const ZipEntryProxy& entry) : m_entry(entry) {}
+
+            /**
+             * @brief
+             * @return
+             */
             const ZipEntryProxy& entry() const {
                 return m_entry;
             }
 
+            /**
+             * @brief
+             * @return
+             */
             ZipEntryProxy& entry() {
                 return m_entry;
             }
@@ -626,7 +680,7 @@ namespace KZip
             {
                 // ===== Prepare an archive file;
                 mz_zip_archive archive = mz_zip_archive();
-                mz_zip_writer_init_file(&archive, fileName.c_str(), 0);
+                mz_zip_writer_init_file(&archive, fileName.string().c_str(), 0);
 
                 // ===== Finalize and close the temporary archive
                 mz_zip_writer_finalize_archive(&archive);
@@ -634,7 +688,7 @@ namespace KZip
 
                 // ===== Validate the temporary file
                 mz_zip_error errordata { mz_zip_error() };
-                if (!mz_zip_validate_file_archive(fileName.c_str(), 0, &errordata)) {
+                if (!mz_zip_validate_file_archive(fileName.string().c_str(), 0, &errordata)) {
                     throw ZipRuntimeError(mz_zip_get_error_string(errordata));
                 }
 
@@ -655,14 +709,14 @@ namespace KZip
 
                 // ===== Open the zip archive file. If unsuccessful, throw exception.
                 m_archivePath = fileName;
-                if (!mz_zip_reader_init_file(&m_archive, m_archivePath.c_str(), 0)) {
+                if (!mz_zip_reader_init_file(&m_archive, m_archivePath.string().c_str(), 0)) {
                     throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
                 }
                 m_isOpen = true;
 
                 // ===== Iterate through the archive and add the entries to the internal data structure
                 mz_zip_archive_file_stat info;
-                for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&m_archive); i++) {
+                for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&m_archive); ++i) {
                     if (!mz_zip_reader_file_stat(&m_archive, i, &info)) {
                         throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
                     }
@@ -681,7 +735,7 @@ namespace KZip
                 std::reverse(m_zipEntryData.begin(), m_zipEntryData.end());
 
                 // ===== Add folder entries if they don't exist
-                for (auto& entry : entryNames(ZipFlags::IncludeDirectories)) {
+                for (auto& entry : entryNames(ZipFlags::Directories)) {
                     if (entry.find('/') != std::string::npos) {
                         addEntry(entry.substr(0, entry.rfind('/') + 1));
                     }
@@ -700,15 +754,15 @@ namespace KZip
                 if (!isOpen()) throw ZipLogicError("Function call: addEntry(). Archive is invalid or not open!");
 
                 // ===== Check if an entry with the given name already exists in the archive.
-                auto files  = entryNames(ZipFlags::IncludeFiles);
+                auto files  = entryNames(ZipFlags::Files);
                 auto result = std::find_if(m_zipEntryData.begin(), m_zipEntryData.end(), [&](const ZipEntryWrapper& item) {
                     return strcmp(item.entry().stats().m_filename, path.c_str()) == 0;    // NOLINT
                 });
 
-                if (result != m_zipEntryData.end()) throw ZipLogicError("KZip Error: Entry '" + path + "' already exists");
+//                if (result != m_zipEntryData.end()) throw ZipLogicError("KZip Error: Entry '" + path + "' already exists");
 
                 // ===== Ensure that all folders and subfolders in the path name have an entry in the archive
-                auto folders  = entryNames(ZipFlags::IncludeDirectories);
+                auto folders  = entryNames(ZipFlags::Directories);
                 auto position = uint64_t { 0 };
                 while (path.find('/', position) != std::string::npos) {
                     position        = path.find('/', position) + 1;
@@ -721,6 +775,10 @@ namespace KZip
                 }
 
                 // ===== Create a new entry and return the reference
+                if (result != m_zipEntryData.end()) {
+                    *result = ZipEntryWrapper(ZipEntryProxy(&m_archive, createInfo(path)));
+                    return result->entry();
+                }
                 return m_zipEntryData.emplace_back(ZipEntryProxy(&m_archive, createInfo(path))).entry();
             }
 
@@ -777,6 +835,12 @@ namespace KZip
                 return stats->entry();
             }
 
+//            inline void extract(const fs::path& destination, const std::string& entryName) {
+//
+//            }
+
+
+
             /**
              * @brief Get a list of the entries in the archive. Depending on the input parameters, the list will include
              * directories, files or both.
@@ -784,7 +848,18 @@ namespace KZip
              * included.
              * @return A std::vector of std::strings with the entry names.
              */
-            inline std::vector<std::string> entryNames(ZipFlags flags = (ZipFlags::IncludeFiles)) const
+            inline std::vector<std::string> entryNames(ZipFlags flags) const
+            {
+                return entryNames("", flags);
+            }
+
+            /**
+             * @brief
+             * @param path
+             * @param flags
+             * @return
+             */
+            inline std::vector<std::string> entryNames(const std::string& path, ZipFlags flags) const
             {
                 if (!isOpen()) throw ZipLogicError("Function call: entryNames(). Archive is invalid or not open!");
 
@@ -793,19 +868,43 @@ namespace KZip
                 // ===== Iterate through all the entries in the archive
                 for (const auto& item : m_zipEntryData) {
                     // ===== If directories should be included and the current entry is a directory, add it to the result.
-                    if (static_cast<bool>(flags & ZipFlags::IncludeDirectories) && item.entry().stats().m_is_directory) {
-                        result.emplace_back(item.entry().stats().m_filename);
-                        continue;
-                    }
+                    if (path.empty() ||
+                        (strlen(item.entry().stats().m_filename) >= path.size() &&
+                         std::string_view(item.entry().stats().m_filename, path.size()) == path))
+                    {
+                        if (static_cast<bool>(flags & ZipFlags::Directories) && item.entry().stats().m_is_directory) {
+                            result.emplace_back(item.entry().stats().m_filename);
+                            continue;
+                        }
 
-                    // ===== If files should be included and the current entry is a file, add it to the result.
-                    if (static_cast<bool>(flags & ZipFlags::IncludeFiles) && !item.entry().stats().m_is_directory) {
-                        result.emplace_back(item.entry().stats().m_filename);
-                        continue;
+                        // ===== If files should be included and the current entry is a file, add it to the result.
+                        if (static_cast<bool>(flags & ZipFlags::Files) && !item.entry().stats().m_is_directory) {
+                            result.emplace_back(item.entry().stats().m_filename);
+                            continue;
+                        }
                     }
                 }
 
                 return result;
+            }
+
+            /**
+             * @brief
+             * @param flags
+             * @return
+             */
+            inline uint16_t entryCount(ZipFlags flags = (ZipFlags::Files)) const {
+                return entryCount("", flags);
+            }
+
+            /**
+             * @brief
+             * @param path
+             * @param flags
+             * @return
+             */
+            inline uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const {
+                return entryNames(path, flags).size();
             }
 
             /**
@@ -877,7 +976,7 @@ namespace KZip
 
                 // ===== Prepare an temporary archive file with the random filename;
                 mz_zip_archive tempArchive = mz_zip_archive();
-                mz_zip_writer_init_file(&tempArchive, tempPath.c_str(), 0);
+                mz_zip_writer_init_file(&tempArchive, tempPath.string().c_str(), 0);
 
                 // ===== Iterate through the ZipEntries and add entries to the temporary file
                 for (auto& entry : m_zipEntryData) {
@@ -906,14 +1005,14 @@ namespace KZip
 
                 // ===== Validate the temporary file
                 mz_zip_error errordata = {};
-                if (!mz_zip_validate_file_archive(tempPath.c_str(), 0, &errordata)) {
+                if (!mz_zip_validate_file_archive(tempPath.string().c_str(), 0, &errordata)) {
                     throw ZipRuntimeError(mz_zip_get_error_string(errordata));
                 }
 
                 // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
                 close();
-                nowide::remove(filename.c_str());                      // NOLINT
-                nowide::rename(tempPath.c_str(), filename.c_str());    // NOLINT
+                nowide::remove(filename.string().c_str());                      // NOLINT
+                nowide::rename(tempPath.string().c_str(), filename.string().c_str());    // NOLINT
                 open(filename);
             }
 
@@ -960,7 +1059,6 @@ namespace KZip
             }
 
             mz_zip_archive    m_archive      = mz_zip_archive(); /**< The struct used by miniz, to handle archive files. */
-//            std::vector<Data> m_zipEntryData = std::vector<Data>();
             std::vector<ZipEntryWrapper> m_zipEntryData = {};
             fs::path          m_archivePath  = {}; /**< The path of the archive file. */
             bool              m_isOpen { false };  /**< A flag indicating if the file is currently open for reading and writing. */
@@ -1120,16 +1218,42 @@ namespace KZip
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of std::strings with the entry names.
          */
-        inline std::vector<std::string> entryNames(ZipFlags flags = (ZipFlags::IncludeFiles | ZipFlags::IncludeDirectories)) const
+        inline std::vector<std::string> entryNames(ZipFlags flags = (ZipFlags::Files)) const
         {
             return m_archive->entryNames(flags);
         }
 
-        //        inline std::vector<std::string> getEntryNamesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles =
-        //        true) const inline std::vector<ZipEntryMetaData> getMetaData(bool includeDirs = true, bool includeFiles = true)
-        //        std::vector<ZipEntryMetaData> getMetaDataInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true)
-        //        inline int getNumEntries(bool includeDirs = true, bool includeFiles = true) const
-        //        inline int getNumEntriesInDir(const std::string& dir, bool includeDirs = true, bool includeFiles = true) const
+        /**
+         * @brief
+         * @param path
+         * @param flags
+         * @return
+         */
+        inline std::vector<std::string> entryNames(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const
+        {
+            return m_archive->entryNames(path, flags);
+        }
+
+        /**
+         * @brief
+         * @param flags
+         * @return
+         */
+        inline uint16_t entryCount(ZipFlags flags = (ZipFlags::Files))
+        {
+            return m_archive->entryCount(flags);
+        }
+
+        /**
+         * @brief
+         * @param path
+         * @param flags
+         * @return
+         */
+        inline uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files))
+        {
+            return m_archive->entryCount(path, flags);
+        }
 
         /**
          * @brief Check if an entry with a given name exists in the archive.
