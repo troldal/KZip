@@ -27,6 +27,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -137,7 +138,7 @@ namespace KZip
         bool             isEncrypted() const { return m_stats.m_is_encrypted; }
         bool             isSupported() const { return m_stats.m_is_supported; }
         std::string_view name() const { return m_stats.m_filename; }
-        std::string_view comment() const { return m_stats.m_comment; }
+//        std::string_view comment() const { return m_stats.m_comment; }
         time_t           time() const { return m_stats.m_time; }
 
     private:
@@ -242,6 +243,8 @@ namespace KZip
             else {
                 m_data = std::vector<unsigned char> {data.begin(), data.end()};
             }
+
+            m_info.m_uncomp_size = m_data.size();
         }
 
         /**
@@ -254,33 +257,36 @@ namespace KZip
          * @tparam T The type to convert to (e.g. std::string or std::vector<unsigned char>
          * @return An object of type T, holding the zip data.
          */
-        template<typename T, typename std::enable_if<std::is_convertible_v<typename T::value_type, unsigned char>>::type* = nullptr>
-        T getData() const
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename std::decay_t<T>::value_type> &&
+                                                     !std::is_same_v<std::string_view, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::allocator<typename std::decay_t<T>::value_type>, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::initializer_list<typename std::decay_t<T>::value_type>, std::decay_t<T> > >::type* = nullptr>
+        T data() const
         {
-            if (!m_data.has_value()) return {};
-            return {m_data->begin(), m_data->end()};
+            using ReturnType = std::decay_t<T>;
+
+            if constexpr (std::is_same_v<ReturnType, std::vector<unsigned char> >)
+                return m_data;
+            return ReturnType{m_data.begin(), m_data.end()};
         }
 
         /**
          * @brief Implicit type conversion operator.
          * @details This templated type conversion operator allows extraction of the zip data to any container
          * that holds a type convertible from unsigned char, and that can be constructed from begin and end
-         * iterators from a source. This function simply calls the getData<T>() function.
+         * iterators from a source. This function simply calls the data<T>() function.
+         * @note The SFINAE checks using std::allocator and std::initializer_list is required in order for conversion to std::string to work.
          * @tparam T The type to convert to (e.g. std::string or std::vector<unsigned char>
          * @return An object of type T, holding the zip data.
          */
-        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type>>::type* = nullptr>
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename std::decay_t<T>::value_type> &&
+                                                     !std::is_same_v<std::string_view, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::allocator<typename std::decay_t<T>::value_type>, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::initializer_list<typename std::decay_t<T>::value_type>, std::decay_t<T> > >::type* = nullptr>
         operator T() const // NOLINT
-        {    // NOLINT
-            return getData<T>();
-        }
-
-        /**
-         * @brief
-         */
-        void erase()
         {
-            if(m_data) m_data.reset();
+            using ReturnType = std::decay_t<T>;
+            return data<ReturnType>();
         }
 
         /**
@@ -319,14 +325,13 @@ namespace KZip
          * @param other
          * @return
          */
-        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type> ||
-                                                     std::is_same_v<std::decay_t<T>, const char*> ||
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename std::decay_t<T>::value_type> ||
                                                      std::is_same_v<std::decay_t<T>, char*> >::type* = nullptr>
         bool operator==(const T& other) const // NOLINT
         {
-            auto data = getData<T>();
-            auto result = std::mismatch(other.begin(), other.end(), data.begin());
-            return (result.first == other.end() || result.second == data.end());
+            auto data_ = data<T>();
+            auto result = std::mismatch(other.begin(), other.end(), data_.begin());
+            return (result.first == other.end() || result.second == data_.end());
         }
 
     private:
@@ -336,11 +341,11 @@ namespace KZip
          * @param archive
          * @param info
          */
-        ZipEntry(std::vector<unsigned char> data, mz_zip_archive_file_stat info) : m_data(data), m_info(info) {}
+        ZipEntry(std::vector<unsigned char> data, mz_zip_archive_file_stat info) : m_data(std::move(data)), m_info(info) {}
 
         //---------- Private Member Variables ---------- //
         mz_zip_archive_file_stat m_info    = mz_zip_archive_file_stat(); /**< File stats for the entry. */
-        std::optional<std::vector<unsigned char> > m_data = {};
+        std::vector<unsigned char> m_data = {};
     };
 
     class ZipEntryProxy {
@@ -463,7 +468,7 @@ namespace KZip
          * @brief Implicit type conversion operator.
          * @details This templated type conversion operator allows extraction of the zip data to any container
          * that holds a type convertible from unsigned char, and that can be constructed from begin and end
-         * iterators from a source. This function simply calls the getData<T>() function.
+         * iterators from a source. This function simply calls the data<T>() function.
          * @tparam T The type to convert to (e.g. std::string or std::vector<unsigned char>
          * @return An object of type T, holding the zip data.
          */
@@ -487,6 +492,13 @@ namespace KZip
 
         std::string_view name() const {
             return {m_info.m_filename};
+        }
+
+        void setName(const std::string& entryname) {
+            if (name() == entryname) return;
+
+
+
         }
 
         /**
@@ -623,21 +635,6 @@ namespace KZip
              * @brief
              */
             ZipArchive() = default;
-
-            /**
-             * @brief Constructor. Constructs an archive object, using the fileName input parameter. If the file already exists,
-             * it will be opened. Otherwise, a new object will be created.
-             * @param fileName The name/path of the file to open or create.
-             */
-            explicit ZipArchive(const fs::path& fileName)
-            {
-                // ===== If successful, continue to open the file.
-                if (fs::exists(fileName)) open(fileName);
-
-                // ===== If unsuccessful, create the archive file and continue.
-                else
-                    create(fileName);
-            }
 
             /**
              * @brief
@@ -1321,7 +1318,7 @@ namespace KZip
          */
 //        inline void addEntry(const std::string& name, const ZipEntry& entry)
 //        {
-//            //            return addEntryImpl(name, entry.getData());
+//            //            return addEntryImpl(name, entry.data());
 //        }
 
     private:

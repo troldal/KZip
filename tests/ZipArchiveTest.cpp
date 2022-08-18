@@ -6,13 +6,14 @@
 #include "test-data-text.hpp"
 #include <KZip.hpp>
 #include <catch.hpp>
+#include <deque>
 
 // Add binary file to archive
 // Add folders to archive
 // Open existing archive
 // List contents in archive
 
-TEST_CASE("TEST 1: CREATE ARCHIVE") {
+TEST_CASE("TEST 1: Create Archive") {
 
         /**
          * @brief Test that trying to do operations on an empty archive object will throw an exception.
@@ -48,33 +49,431 @@ TEST_CASE("TEST 1: CREATE ARCHIVE") {
     }
 }
 
-TEST_CASE("ZipEntry") {
+TEST_CASE("TEST 2: ZipEntry Created Manually") {
 
     std::string entryData = txtdata;
 
-    KZip::ZipEntry first("TestEntry");
-    REQUIRE(first.name() == "TestEntry");
+    // ===== Tests for ensuring that a default constructed ZipEntry file object works as expected.
+    SECTION("#01: Default Construction") {
 
-    first = entryData;
-    REQUIRE(first == entryData);
-    REQUIRE_FALSE(first == std::string("dummy string"));
+        // ===== Create ZipEntry and add data.
+        KZip::ZipEntry entry("text_data.txt");
+        entry = entryData;
 
-    auto second = first;
-    REQUIRE(second.name() == "TestEntry");
-    REQUIRE(second == entryData);
-    REQUIRE_FALSE(second == std::string("dummy string"));
+        // ===== Check that name and contents are correct
+        REQUIRE(entry.name() == "text_data.txt");
+        REQUIRE(entry == entryData);
+        REQUIRE_FALSE(entry == std::string("dummy string"));
 
-    KZip::ZipEntry third("dummy");
-    third = first;
-    REQUIRE(third.name() == "TestEntry");
-    REQUIRE(third == entryData);
-    REQUIRE_FALSE(third == std::string("dummy string"));
+        // ===== Change the entry name and check it is correct. Also check that an empty title is not allowed.
+        entry.setName("other_text_data.txt");
+        REQUIRE(entry.name() == "other_text_data.txt");
+        REQUIRE_THROWS(entry.setName(""));
 
-    std::string data = third;
+        // ===== Check that implicit conversion to std::string works as expected.
+        std::string stringdata {};
+        stringdata = entry;
+        REQUIRE(stringdata == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::vector<unsigned char> vectordata {};
+        vectordata = entry;
+        REQUIRE(std::string{vectordata.begin(), vectordata.end()} == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::deque<unsigned char> dequedata {};
+        dequedata = entry;
+        REQUIRE(std::string{dequedata.begin(), dequedata.end()} == entryData);
+
+        // ===== Check that data can be added in form of std::vector<unsigned char>
+        vectordata = {entryData.begin(), entryData.end()};
+        entry = vectordata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that data can be added in form of std::deque<unsigned char>
+        dequedata = {entryData.begin(), entryData.end()};
+        entry = dequedata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that the ZipEntry metadata are correct
+        auto mdata = entry.metadata();
+        REQUIRE(mdata.index() == 0);
+        REQUIRE(mdata.compressedSize() == 0);
+        REQUIRE(mdata.uncompressedSize() == entryData.size());
+        REQUIRE(mdata.isDirectory() == false);
+        REQUIRE(mdata.isEncrypted() == false);
+        REQUIRE(mdata.isSupported() == true);
+        REQUIRE(mdata.name() == "other_text_data.txt");
+        REQUIRE(mdata.time() > 0);
+    }
+
+    // ===== Tests for ensuring that a copy constructed ZipEntry file object works as expected.
+    SECTION("#02: Copy Construction") {
+
+        // ===== Create ZipEntry, add data, and make a copy.
+        KZip::ZipEntry original("text_data.txt");
+        original = entryData;
+        auto entry = original;
+
+        // ===== Check that name and contents are correct
+        REQUIRE(entry.name() == "text_data.txt");
+        REQUIRE(entry == entryData);
+        REQUIRE_FALSE(entry == std::string("dummy string"));
+
+        // ===== Change the entry name and check it is correct. Also check that an empty title is not allowed.
+        entry.setName("other_text_data.txt");
+        REQUIRE(entry.name() == "other_text_data.txt");
+        REQUIRE_THROWS(entry.setName(""));
+
+        // ===== Check that implicit conversion to std::string works as expected.
+        std::string stringdata {};
+        stringdata = entry;
+        REQUIRE(stringdata == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::vector<unsigned char> vectordata {};
+        vectordata = entry;
+        REQUIRE(std::string{vectordata.begin(), vectordata.end()} == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::deque<unsigned char> dequedata {};
+        dequedata = entry;
+        REQUIRE(std::string{dequedata.begin(), dequedata.end()} == entryData);
+
+        // ===== Check that data can be added in form of std::vector<unsigned char>
+        vectordata = {entryData.begin(), entryData.end()};
+        entry = vectordata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that data can be added in form of std::deque<unsigned char>
+        dequedata = {entryData.begin(), entryData.end()};
+        entry = dequedata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that the ZipEntry metadata are correct
+        auto mdata = entry.metadata();
+        REQUIRE(mdata.index() == 0);
+        REQUIRE(mdata.compressedSize() == 0);
+        REQUIRE(mdata.uncompressedSize() == entryData.size());
+        REQUIRE(mdata.isDirectory() == false);
+        REQUIRE(mdata.isEncrypted() == false);
+        REQUIRE(mdata.isSupported() == true);
+        REQUIRE(mdata.name() == "other_text_data.txt");
+        REQUIRE(mdata.time() > 0);
+    }
+
+    // ===== Tests for ensuring that a copy assigned ZipEntry file object works as expected.
+    SECTION("#03: Copy Assignment") {
+
+        // ===== Create ZipEntry, add data, and make a copy.
+        KZip::ZipEntry original("text_data.txt");
+        original = entryData;
+        KZip::ZipEntry entry("dummy name");
+        entry = original;
+
+        // ===== Check that name and contents are correct
+        REQUIRE(entry.name() == "text_data.txt");
+        REQUIRE(entry == entryData);
+        REQUIRE_FALSE(entry == std::string("dummy string"));
+
+        // ===== Change the entry name and check it is correct. Also check that an empty title is not allowed.
+        entry.setName("other_text_data.txt");
+        REQUIRE(entry.name() == "other_text_data.txt");
+        REQUIRE_THROWS(entry.setName(""));
+
+        // ===== Check that implicit conversion to std::string works as expected.
+        std::string stringdata {};
+        stringdata = entry;
+        REQUIRE(stringdata == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::vector<unsigned char> vectordata {};
+        vectordata = entry;
+        REQUIRE(std::string{vectordata.begin(), vectordata.end()} == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::deque<unsigned char> dequedata {};
+        dequedata = entry;
+        REQUIRE(std::string{dequedata.begin(), dequedata.end()} == entryData);
+
+        // ===== Check that data can be added in form of std::vector<unsigned char>
+        vectordata = {entryData.begin(), entryData.end()};
+        entry = vectordata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that data can be added in form of std::deque<unsigned char>
+        dequedata = {entryData.begin(), entryData.end()};
+        entry = dequedata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that the ZipEntry metadata are correct
+        auto mdata = entry.metadata();
+        REQUIRE(mdata.index() == 0);
+        REQUIRE(mdata.compressedSize() == 0);
+        REQUIRE(mdata.uncompressedSize() == entryData.size());
+        REQUIRE(mdata.isDirectory() == false);
+        REQUIRE(mdata.isEncrypted() == false);
+        REQUIRE(mdata.isSupported() == true);
+        REQUIRE(mdata.name() == "other_text_data.txt");
+        REQUIRE(mdata.time() > 0);
+    }
+
+    // ===== Tests for ensuring that a move constructed ZipEntry file object works as expected.
+    SECTION("#04: Move Construction") {
+
+        // ===== Create ZipEntry, add data, and make a copy.
+        KZip::ZipEntry original("text_data.txt");
+        original = entryData;
+        auto entry = std::move(original);
+
+        // ===== Check that calling finctions on the original object does not throw.
+        REQUIRE_NOTHROW(original.name());
+        REQUIRE_NOTHROW(original.data<std::string>());
+        REQUIRE_NOTHROW(original.metadata());
+        REQUIRE_NOTHROW(original.metadata().index());
+        REQUIRE_NOTHROW(original.metadata().compressedSize());
+        REQUIRE_NOTHROW(original.metadata().uncompressedSize());
+        REQUIRE_NOTHROW(original.metadata().isDirectory());
+        REQUIRE_NOTHROW(original.metadata().isEncrypted());
+        REQUIRE_NOTHROW(original.metadata().isSupported());
+        REQUIRE_NOTHROW(original.metadata().name());
+        REQUIRE_NOTHROW(original.metadata().time());
+
+        // ===== Check that name and contents are correct
+        REQUIRE(entry.name() == "text_data.txt");
+        REQUIRE(entry == entryData);
+        REQUIRE_FALSE(entry == std::string("dummy string"));
+
+        // ===== Change the entry name and check it is correct. Also check that an empty title is not allowed.
+        entry.setName("other_text_data.txt");
+        REQUIRE(entry.name() == "other_text_data.txt");
+        REQUIRE_THROWS(entry.setName(""));
+
+        // ===== Check that implicit conversion to std::string works as expected.
+        std::string stringdata {};
+        stringdata = entry;
+        REQUIRE(stringdata == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::vector<unsigned char> vectordata {};
+        vectordata = entry;
+        REQUIRE(std::string{vectordata.begin(), vectordata.end()} == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::deque<unsigned char> dequedata {};
+        dequedata = entry;
+        REQUIRE(std::string{dequedata.begin(), dequedata.end()} == entryData);
+
+        // ===== Check that data can be added in form of std::vector<unsigned char>
+        vectordata = {entryData.begin(), entryData.end()};
+        entry = vectordata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that data can be added in form of std::deque<unsigned char>
+        dequedata = {entryData.begin(), entryData.end()};
+        entry = dequedata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that the ZipEntry metadata are correct
+        auto mdata = entry.metadata();
+        REQUIRE(mdata.index() == 0);
+        REQUIRE(mdata.compressedSize() == 0);
+        REQUIRE(mdata.uncompressedSize() == entryData.size());
+        REQUIRE(mdata.isDirectory() == false);
+        REQUIRE(mdata.isEncrypted() == false);
+        REQUIRE(mdata.isSupported() == true);
+        REQUIRE(mdata.name() == "other_text_data.txt");
+        REQUIRE(mdata.time() > 0);
+    }
+
+    // ===== Tests for ensuring that a move assigned ZipEntry file object works as expected.
+    SECTION("#05: Move Assignment") {
+
+        // ===== Create ZipEntry, add data, and make a copy.
+        KZip::ZipEntry original("text_data.txt");
+        original = entryData;
+        KZip::ZipEntry entry("dummy name");
+        entry = std::move(original);
+
+        // ===== Check that calling finctions on the original object does not throw.
+        REQUIRE_NOTHROW(original.name());
+        REQUIRE_NOTHROW(original.data<std::string>());
+        REQUIRE_NOTHROW(original.metadata());
+        REQUIRE_NOTHROW(original.metadata().index());
+        REQUIRE_NOTHROW(original.metadata().compressedSize());
+        REQUIRE_NOTHROW(original.metadata().uncompressedSize());
+        REQUIRE_NOTHROW(original.metadata().isDirectory());
+        REQUIRE_NOTHROW(original.metadata().isEncrypted());
+        REQUIRE_NOTHROW(original.metadata().isSupported());
+        REQUIRE_NOTHROW(original.metadata().name());
+        REQUIRE_NOTHROW(original.metadata().time());
+
+        // ===== Check that name and contents are correct
+        REQUIRE(entry.name() == "text_data.txt");
+        REQUIRE(entry == entryData);
+        REQUIRE_FALSE(entry == std::string("dummy string"));
+
+        // ===== Change the entry name and check it is correct. Also check that an empty title is not allowed.
+        entry.setName("other_text_data.txt");
+        REQUIRE(entry.name() == "other_text_data.txt");
+        REQUIRE_THROWS(entry.setName(""));
+
+        // ===== Check that implicit conversion to std::string works as expected.
+        std::string stringdata {};
+        stringdata = entry;
+        REQUIRE(stringdata == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::vector<unsigned char> vectordata {};
+        vectordata = entry;
+        REQUIRE(std::string{vectordata.begin(), vectordata.end()} == entryData);
+
+        // ===== Check that implicit conversion to std::vector<unsigned char> works as expected.
+        std::deque<unsigned char> dequedata {};
+        dequedata = entry;
+        REQUIRE(std::string{dequedata.begin(), dequedata.end()} == entryData);
+
+        // ===== Check that data can be added in form of std::vector<unsigned char>
+        vectordata = {entryData.begin(), entryData.end()};
+        entry = vectordata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that data can be added in form of std::deque<unsigned char>
+        dequedata = {entryData.begin(), entryData.end()};
+        entry = dequedata;
+        stringdata = entry;
+        REQUIRE(entry.data<std::string>() == entryData);
+
+        // ===== Check that the ZipEntry metadata are correct
+        auto mdata = entry.metadata();
+        REQUIRE(mdata.index() == 0);
+        REQUIRE(mdata.compressedSize() == 0);
+        REQUIRE(mdata.uncompressedSize() == entryData.size());
+        REQUIRE(mdata.isDirectory() == false);
+        REQUIRE(mdata.isEncrypted() == false);
+        REQUIRE(mdata.isSupported() == true);
+        REQUIRE(mdata.name() == "other_text_data.txt");
+        REQUIRE(mdata.time() > 0);
+    }
+}
+
+TEST_CASE("TEST 3: ZipArchive from Existing Archive on Disk") {
+
+    // ===== Set up ZipArchive object and load the archive from disk
+    KZip::ZipArchive archive("./CreatedWithWinZip.zip");
+    REQUIRE(archive.isOpen());
+
+    // ===== Check that the entry counts are correct.
+    SECTION("#01: Count Entries in Archive") {
+        REQUIRE(archive.entryCount(KZip::ZipFlags::Files) == 10);
+        REQUIRE(archive.entryCount(KZip::ZipFlags::Directories) == 2);
+        REQUIRE(archive.entryCount(KZip::ZipFlags::Files | KZip::ZipFlags::Directories) == 12);
+    }
+
+    // ===== Check that file names are correct
+    SECTION("#02: Check File Names Exists") {
+        auto names = archive.entryNames(KZip::ZipFlags::Files);
+        REQUIRE(std::find(names.begin(), names.end(), "file 1.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 2.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 3.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 4.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 5.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
+    }
+
+    // ===== Check that folder names are correct
+    SECTION("#03: Check Folder Names Exists") {
+        auto names = archive.entryNames(KZip::ZipFlags::Directories);
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 1/") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/") != names.end());
+    }
+
+    // ===== Check that all (folder and file) names are correct
+    SECTION("#04: Check All Entry Names") {
+        auto names = archive.entryNames(KZip::ZipFlags::Files | KZip::ZipFlags::Directories);
+        REQUIRE(std::find(names.begin(), names.end(), "file 1.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 2.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 3.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 4.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "file 5.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 1/") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
+    }
+
+    // ===== Check entry count in specific folder
+    SECTION("#05: Count Number of Entries in Spscific Folder") {
+        REQUIRE(archive.entryCount("Folder 2/") == 5);
+    }
+
+    SECTION("#06: Check Entry Names in Specific Folder") {
+        auto names = archive.entryNames("Folder 2/");
+
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
+        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
+    }
+
+    SECTION("#07: Check that All Entries Exists") {
+        REQUIRE(archive.hasEntry("file 1.txt"));
+        REQUIRE(archive.hasEntry("file 2.txt"));
+        REQUIRE(archive.hasEntry("file 3.txt"));
+        REQUIRE(archive.hasEntry("file 4.txt"));
+        REQUIRE(archive.hasEntry("file 5.txt"));
+        REQUIRE(archive.hasEntry("Folder 1/"));
+        REQUIRE(archive.hasEntry("Folder 2/"));
+        REQUIRE(archive.hasEntry("Folder 2/file 1.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/file 2.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/file 3.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/file 4.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/file 5.txt"));
+    }
+
+    archive.close();
+    REQUIRE_FALSE(archive.isOpen());
+}
+
+TEST_CASE("TEST 4: ZipEntry & ZipEntryProxy Created from Existing Archive") {
+
+    std::string entryData = txtdata;
+
+    // ===== Set up ZipArchive object and load the archive from disk
+    KZip::ZipArchive archive("./CreatedWithWinZip.zip");
+    REQUIRE(archive.isOpen());
+
+    SECTION("#01: Check Contents of 'file 1.txt' using ZipEntryProxy") {
+        REQUIRE(archive.entry("file 1.txt").name() == "file 1.txt");
+        REQUIRE(archive.entry("file 1.txt") == txtdata);
+        REQUIRE_FALSE(archive.entry("file 1.txt") == std::string("dummy string"));
+
+        archive.entry("file 1.txt").setName("other file 1.txt");
+
+    }
+
+
 
 }
 
-TEST_CASE("TEST 2: ADD & EXTRACT ENTRIES") {
+TEST_CASE("TEST 5: ADD & EXTRACT ENTRIES") {
 
     KZip::ZipArchive archive;
     std::string archivePath = "./TestArchive.zip";
@@ -161,118 +560,7 @@ TEST_CASE("TEST 2: ADD & EXTRACT ENTRIES") {
     }
 }
 
-TEST_CASE("TEST 3: OPEN EXISTING ARCHIVE") {
 
-    // Set up
-    KZip::ZipArchive archive;
-    archive.open("./CreatedWithWinZip.zip");
-
-    SECTION("Count entries") {
-        REQUIRE(archive.entryCount(KZip::ZipFlags::Files) == 10);
-        REQUIRE(archive.entryCount(KZip::ZipFlags::Directories) == 2);
-        REQUIRE(archive.entryCount(KZip::ZipFlags::Files | KZip::ZipFlags::Directories) == 12);
-    }
-
-    SECTION("List files") {
-        auto names = archive.entryNames(KZip::ZipFlags::Files);
-        REQUIRE(std::find(names.begin(), names.end(), "file 1.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 2.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 3.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 4.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 5.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
-    }
-
-    SECTION("List folders") {
-        auto names = archive.entryNames(KZip::ZipFlags::Directories);
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 1/") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/") != names.end());
-    }
-
-    SECTION("List all") {
-        auto names = archive.entryNames(KZip::ZipFlags::Files | KZip::ZipFlags::Directories);
-        REQUIRE(std::find(names.begin(), names.end(), "file 1.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 2.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 3.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 4.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "file 5.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 1/") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
-    }
-
-    SECTION("Count entries in directory") {
-        REQUIRE(archive.entryCount("Folder 2/") == 5);
-    }
-
-    SECTION("List entries in directory") {
-        auto names = archive.entryNames("Folder 2/");
-
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 1.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 2.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 3.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 4.txt") != names.end());
-        REQUIRE(std::find(names.begin(), names.end(), "Folder 2/file 5.txt") != names.end());
-    }
-
-    SECTION("Check entries exist") {
-        REQUIRE(archive.hasEntry("file 1.txt"));
-        REQUIRE(archive.hasEntry("file 2.txt"));
-        REQUIRE(archive.hasEntry("file 3.txt"));
-        REQUIRE(archive.hasEntry("file 4.txt"));
-        REQUIRE(archive.hasEntry("file 5.txt"));
-        REQUIRE(archive.hasEntry("Folder 1/"));
-        REQUIRE(archive.hasEntry("Folder 2/"));
-        REQUIRE(archive.hasEntry("Folder 2/file 1.txt"));
-        REQUIRE(archive.hasEntry("Folder 2/file 2.txt"));
-        REQUIRE(archive.hasEntry("Folder 2/file 3.txt"));
-        REQUIRE(archive.hasEntry("Folder 2/file 4.txt"));
-        REQUIRE(archive.hasEntry("Folder 2/file 5.txt"));
-    }
-
-//    SECTION("Extract entry to disk") {
-//        REQUIRE(false);
-//    }
-//
-//    SECTION("Extract directory to disk") {
-//        REQUIRE(false);
-//    }
-//
-//    SECTION("Extract all to disk") {
-//        REQUIRE(false);
-//    }
-//
-//    SECTION("Get entry binary data") {
-//        auto result = archive.GetEntry("file 1.txt").GetData();
-//        std::string resultStr;
-//        for (auto& ch : result)
-//            resultStr += static_cast<char>(ch);
-//
-//        std::string compare = "MISSION CONTROL I wouldn't worry too much about the computer. First of all, there is still a chance that he is right, despite your tests, and if it should happen again, we suggest eliminating this possibility by allowing the unit to remain in place and seeing whether or not it actually fails. If the computer should turn out to be wrong, the situation is still not alarming. The type of obsessional error he may be guilty of is not unknown among the latest generation of HAL 9000 computers. It has almost always revolved around a single detail, such as the one you have described, and it has never interfered with the integrity or reliability of the computer's performance in other areas. No one is certain of the cause of this kind of malfunctioning. It may be over-programming, but it could also be any number of reasons. In any event, it is somewhat analogous to human neurotic behavior. Does this answer your query?  Zero-five-three-Zero, MC, transmission concluded.";
-//        REQUIRE(resultStr == compare);
-//    }
-//
-//    SECTION("Get entry string data") {
-//        std::string result = archive.GetEntry("file 1.txt").GetDataAsString();
-//        std::string compare = "MISSION CONTROL I wouldn't worry too much about the computer. First of all, there is still a chance that he is right, despite your tests, and if it should happen again, we suggest eliminating this possibility by allowing the unit to remain in place and seeing whether or not it actually fails. If the computer should turn out to be wrong, the situation is still not alarming. The type of obsessional error he may be guilty of is not unknown among the latest generation of HAL 9000 computers. It has almost always revolved around a single detail, such as the one you have described, and it has never interfered with the integrity or reliability of the computer's performance in other areas. No one is certain of the cause of this kind of malfunctioning. It may be over-programming, but it could also be any number of reasons. In any event, it is somewhat analogous to human neurotic behavior. Does this answer your query?  Zero-five-three-Zero, MC, transmission concluded.";
-//        REQUIRE(result == compare);
-//    }
-//
-//    SECTION("Get entry meta data") {
-//
-//
-//        REQUIRE(false);
-//    }
-}
-//
 //TEST_CASE("Test 3: Modify archive") {
 //
 //    // Set up
