@@ -467,6 +467,22 @@ TEST_CASE("TEST 4: ZipEntry & ZipEntryProxy Created from Existing Archive") {
 
         archive.entry("file 1.txt").setName("other file 1.txt");
 
+        REQUIRE(archive.hasEntry("other file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
+        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
+        REQUIRE(archive.entry("other file 1.txt") == txtdata);
+        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
+
+        archive.save();
+        archive.close();
+        archive.open("./CreatedWithWinZip.zip");
+
+        REQUIRE(archive.hasEntry("other file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
+        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
+        REQUIRE(archive.entry("other file 1.txt") == txtdata);
+        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
+
     }
 
 

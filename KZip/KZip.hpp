@@ -75,21 +75,17 @@ namespace KZip
 
 namespace KZip
 {
+    class ZipArchive;
+    class ZipEntry;
+    class ZipEntryProxy;
+
     namespace Impl
     {
         class ZipEntryWrapper;
         class ZipArchive;
     }    // namespace Impl
 
-    class ZipArchive;
 
-    /**
-     * @brief The ZipEntryData entity is an alias for a std::vector of std::bytes.
-     * @details This is used as a generic container of file data of any kind, both character strings and binary.
-     * A vector of char or an array of char can also be used, but a vector of bytes makes it clearer that it can
-     * also be used for non-text data.
-     */
-    using ZipEntryData = std::vector<unsigned char>;
 
     /**
      * @brief
@@ -157,64 +153,38 @@ namespace KZip
          * @brief
          * @param filename
          */
-        explicit ZipEntry(const std::string& filename) {
-            m_info.m_file_index       = 0;
-            m_info.m_central_dir_ofs  = 0;
-            m_info.m_version_made_by  = 0;
-            m_info.m_version_needed   = 0;
-            m_info.m_bit_flag         = 0;
-            m_info.m_method           = 0;
-            m_info.m_time             = std::time(nullptr);
-            m_info.m_crc32            = 0;
-            m_info.m_comp_size        = 0;
-            m_info.m_uncomp_size      = 0;
-            m_info.m_internal_attr    = 0;
-            m_info.m_external_attr    = 0;
-            m_info.m_local_header_ofs = 0;
-            m_info.m_comment_size     = 0;
-            m_info.m_is_directory     = (filename.back() == '/');
-            m_info.m_is_encrypted     = false;
-            m_info.m_is_supported     = true;
-
-#if _MSC_VER    // On MSVC, use the safe version of strcpy
-            strcpy_s(m_info.m_filename, sizeof m_info.m_filename, filename.c_str());
-            strcpy_s(m_info.m_comment, sizeof m_info.m_comment, "");
-#else    // Otherwise, use the unsafe version as fallback :(
-            strncpy(m_info.m_filename, filename.c_str(), sizeof m_info.m_filename);    // NOLINT
-            strncpy(m_info.m_comment, "", sizeof m_info.m_comment);                // NOLINT
-#endif
-        }
+        explicit ZipEntry(const std::string& filename);
 
         /**
          * @brief
          * @param other
          */
-        ZipEntry(const ZipEntry& other) = default;
+        ZipEntry(const ZipEntry& other);// = default;
 
         /**
          * @brief
          * @param other
          */
-        ZipEntry(ZipEntry&& other) noexcept = default;
+        ZipEntry(ZipEntry&& other) noexcept;// = default;
 
         /**
          * @brief
          * @param other
          * @return
          */
-        ZipEntry& operator=(const ZipEntry& other) = default;
+        ZipEntry& operator=(const ZipEntry& other);// = default;
 
         /**
          * @brief
          * @param other
          * @return
          */
-        ZipEntry& operator=(ZipEntry&& other) noexcept = default;
+        ZipEntry& operator=(ZipEntry&& other) noexcept;// = default;
 
         /**
          * @brief
          */
-        ~ZipEntry() = default;
+        ~ZipEntry();// = default;
 
         /**
          * @brief
@@ -293,31 +263,19 @@ namespace KZip
          * @brief
          * @return
          */
-        std::string_view name() const {
-            return {m_info.m_filename};
-        }
+        std::string_view name() const;
 
         /**
          * @brief
          * @param filename
          */
-        void setName(const std::string& entryname) {
-            if (entryname.empty()) throw ZipLogicError("Entry name must not be empty");
-
-#if _MSC_VER    // On MSVC, use the safe version of strcpy
-            strcpy_s(m_info.m_filename, sizeof m_info.m_filename, entryname.c_str());
-            strcpy_s(m_info.m_comment, sizeof m_info.m_comment, "");
-#else    // Otherwise, use the unsafe version as fallback :(
-            strncpy(m_info.m_filename, entryname.c_str(), sizeof m_info.m_filename);    // NOLINT
-            strncpy(m_info.m_comment, "", sizeof m_info.m_comment);                // NOLINT
-#endif
-        }
+        void setName(const std::string& entryname);
 
         /**
          * @brief
          * @return
          */
-        ZipEntryMetaData metadata() const { return ZipEntryMetaData(m_info); }
+        ZipEntryMetaData metadata() const;// { return ZipEntryMetaData(m_info); }
 
         /**
          * @brief
@@ -341,7 +299,7 @@ namespace KZip
          * @param archive
          * @param info
          */
-        ZipEntry(std::vector<unsigned char> data, mz_zip_archive_file_stat info) : m_data(std::move(data)), m_info(info) {}
+        ZipEntry(std::vector<unsigned char> data, mz_zip_archive_file_stat info);// : m_data(std::move(data)), m_info(info) {}
 
         //---------- Private Member Variables ---------- //
         mz_zip_archive_file_stat m_info    = mz_zip_archive_file_stat(); /**< File stats for the entry. */
@@ -356,20 +314,14 @@ namespace KZip
         /**
          * @brief
          */
-        ~ZipEntryProxy() = default;
+        ~ZipEntryProxy();// = default;
 
         /**
          * @brief
          * @param other
          * @return
          */
-        ZipEntryProxy& operator=(const ZipEntryProxy& other) {
-            if (&other != this) {
-                *this = other.getData<std::vector<unsigned char>>();
-            }
-
-            return *this;
-        };
+        ZipEntryProxy& operator=(const ZipEntryProxy& other);
 
         /**
          * @brief
@@ -478,34 +430,34 @@ namespace KZip
             return getData<T>();
         }
 
-        operator ZipEntry() { // NOLINT
-            return {getData<std::vector<unsigned char>>(), m_info};
-        }
+        /**
+         * @brief
+         * @return
+         */
+        operator ZipEntry(); // NOLINT
 
         /**
          * @brief
          */
-        void clear()
-        {
-            // TODO(troldal): To be implemented
-        }
-
-        std::string_view name() const {
-            return {m_info.m_filename};
-        }
-
-        void setName(const std::string& entryname) {
-            if (name() == entryname) return;
-
-
-
-        }
+        void clear();
 
         /**
          * @brief
          * @return
          */
-        ZipEntryMetaData metadata() const { return ZipEntryMetaData(m_info); }
+        std::string_view name() const;
+
+        /**
+         * @brief
+         * @param entryname
+         */
+        void setName(const std::string& entryname);
+
+        /**
+         * @brief
+         * @return
+         */
+        ZipEntryMetaData metadata() const;
 
         template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type> ||
                                                      std::is_same_v<std::decay_t<T>, const char*> ||
@@ -525,69 +477,58 @@ namespace KZip
          * @param archive
          * @param info
          */
-        ZipEntryProxy(mz_zip_archive* archive, mz_zip_archive_file_stat info) : m_archive(archive), m_info(info) {}
+        ZipEntryProxy(KZip::Impl::ZipArchive* archive, mz_zip_archive_file_stat info);
 
         /**
          * @brief
          * @param other
          */
-        ZipEntryProxy(const ZipEntryProxy& other) = default;
+        ZipEntryProxy(const ZipEntryProxy& other);
 
         /**
          * @brief
          * @param other
          */
-        ZipEntryProxy(ZipEntryProxy&& other) noexcept = default;
+        ZipEntryProxy(ZipEntryProxy&& other) noexcept;
 
         /**
          * @brief
          * @param other
          * @return
          */
-        ZipEntryProxy& operator=(ZipEntryProxy&& other) noexcept = default;
+        ZipEntryProxy& operator=(ZipEntryProxy&& other) noexcept;
 
         /**
          *
          * @return
          */
-        const mz_zip_archive_file_stat& stats() const {
-            return m_info;
-        }
+        const mz_zip_archive_file_stat& stats() const;
 
         /**
          *
          * @return
          */
-        bool isUpdated() const {
-            return m_data.has_value();
-        }
+        bool isUpdated() const;
 
         /**
          * @brief
          * @return
          */
-        uint64_t size() const {
-            if (isUpdated())
-                return m_data.has_value() ? m_data.value().size() : 0;
-
-            return m_info.m_uncomp_size;
-        }
+        uint64_t size() const ;
 
         /**
          * @brief
          * @return
          */
-        const std::vector<unsigned char>& rawData() const {
-            return m_data.value();
-        }
+        const std::vector<unsigned char>& rawData() const ;
+
 
         //---------- Private Member Variables ---------- //
+        KZip::Impl::ZipArchive*  m_ziparchive = nullptr;
         mz_zip_archive*          m_archive = nullptr;
         mz_zip_archive_file_stat m_info    = mz_zip_archive_file_stat(); /**< File stats for the entry. */
         std::optional<std::vector<unsigned char> > m_data = {};
-    }; // ZipEntryProxy
-
-
+    }; // class ZipEntryProxy
 
     namespace Impl
     {
@@ -601,23 +542,19 @@ namespace KZip
              * @brief
              * @param entry
              */
-            explicit ZipEntryWrapper(const ZipEntryProxy& entry) : m_entry(entry) {}
+            explicit ZipEntryWrapper(const ZipEntryProxy& entry);
 
             /**
              * @brief
              * @return
              */
-            const ZipEntryProxy& entry() const {
-                return m_entry;
-            }
+            const ZipEntryProxy& entry() const;
 
             /**
              * @brief
              * @return
              */
-            ZipEntryProxy& entry() {
-                return m_entry;
-            }
+            ZipEntryProxy& entry();
 
         private:
             ZipEntryProxy m_entry;
@@ -629,12 +566,13 @@ namespace KZip
         class ZipArchive
         {
             friend class KZip::ZipArchive;
+            friend class KZip::ZipEntryProxy;
 
         public:
             /**
              * @brief
              */
-            ZipArchive() = default;
+            ZipArchive();// = default;
 
             /**
              * @brief
@@ -646,12 +584,12 @@ namespace KZip
              * @brief
              * @param other
              */
-            ZipArchive(ZipArchive&& other) noexcept = default;
+            ZipArchive(ZipArchive&& other) noexcept;// = default;
 
             /**
              * @brief
              */
-            ~ZipArchive() { close(); }
+            ~ZipArchive();// { close(); }
 
             /**
              * @brief
@@ -665,7 +603,7 @@ namespace KZip
              * @param other
              * @return
              */
-            ZipArchive& operator=(ZipArchive&& other) = default;
+            ZipArchive& operator=(ZipArchive&& other);// = default;
 
             /**
              * @brief Creates a new (empty) archive file with the given filename.
@@ -673,25 +611,7 @@ namespace KZip
              * After ensuring that the file is valid (i.e. not somehow corrupted), it is opened using the open() member function.
              * @param fileName The filename/path for the new archive.
              */
-            inline void create(const fs::path& fileName)
-            {
-                // ===== Prepare an archive file;
-                mz_zip_archive archive = mz_zip_archive();
-                mz_zip_writer_init_file(&archive, fileName.string().c_str(), 0);
-
-                // ===== Finalize and close the temporary archive
-                mz_zip_writer_finalize_archive(&archive);
-                mz_zip_writer_end(&archive);
-
-                // ===== Validate the temporary file
-                mz_zip_error errordata { mz_zip_error() };
-                if (!mz_zip_validate_file_archive(fileName.string().c_str(), 0, &errordata)) {
-                    throw ZipRuntimeError(mz_zip_get_error_string(errordata));
-                }
-
-                // ===== If everything is OK, open the newly created archive.
-                open(fileName);
-            }
+            void create(const fs::path& fileName);
 
             /**
              * @brief Open an existing archive file with the given filename.
@@ -700,44 +620,7 @@ namespace KZip
              * @note If more than one entry with the same name exists in the archive, only the newest one will be loaded.
              * When saving the archive, only the loaded entries will be kept; other entries with the same name will be deleted.
              */
-            inline void open(const fs::path& fileName)
-            {
-                if (isOpen()) close();
-
-                // ===== Open the zip archive file. If unsuccessful, throw exception.
-                m_archivePath = fileName;
-                if (!mz_zip_reader_init_file(&m_archive, m_archivePath.string().c_str(), 0)) {
-                    throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
-                }
-                m_isOpen = true;
-
-                // ===== Iterate through the archive and add the entries to the internal data structure
-                mz_zip_archive_file_stat info;
-                for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&m_archive); ++i) {
-                    if (!mz_zip_reader_file_stat(&m_archive, i, &info)) {
-                        throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
-                    }
-
-                    if (info.m_file_index > m_currentIndex) m_currentIndex = info.m_file_index;
-                    m_zipEntryData.emplace_back(ZipEntryProxy(&m_archive, info));
-                }
-
-                // ===== Remove entries with identical names. The newest entries will be retained.
-                // TODO (troldal): Can this be done without reversing the list twice?
-                auto isEqual = [](const ZipEntryWrapper& a, const ZipEntryWrapper& b) {
-                    return strcmp(a.entry().stats().m_filename, b.entry().stats().m_filename) == 0;
-                };
-                std::reverse(m_zipEntryData.begin(), m_zipEntryData.end());
-                m_zipEntryData.erase(std::unique(m_zipEntryData.begin(), m_zipEntryData.end(), isEqual), m_zipEntryData.end());
-                std::reverse(m_zipEntryData.begin(), m_zipEntryData.end());
-
-                // ===== Add folder entries if they don't exist
-                for (auto& entry : entryNames(ZipFlags::Directories)) {
-                    if (entry.find('/') != std::string::npos) {
-                        addEntry(entry.substr(0, entry.rfind('/') + 1));
-                    }
-                }
-            }
+            void open(const fs::path& fileName);
 
             /**
              * @brief Add an entry to the archive.
@@ -746,97 +629,27 @@ namespace KZip
              * @param path
              * @param data
              */
-            inline ZipEntryProxy& addEntry(const std::string& path)
-            {
-                if (!isOpen()) throw ZipLogicError("Function call: addEntry(). Archive is invalid or not open!");
-
-                // ===== Check if an entry with the given name already exists in the archive.
-                auto files  = entryNames(ZipFlags::Files);
-                auto result = std::find_if(m_zipEntryData.begin(), m_zipEntryData.end(), [&](const ZipEntryWrapper& item) {
-                    return strcmp(item.entry().stats().m_filename, path.c_str()) == 0;    // NOLINT
-                });
-
-//                if (result != m_zipEntryData.end()) throw ZipLogicError("KZip Error: Entry '" + path + "' already exists");
-
-                // ===== Ensure that all folders and subfolders in the path name have an entry in the archive
-                auto folders  = entryNames(ZipFlags::Directories);
-                auto position = uint64_t { 0 };
-                while (path.find('/', position) != std::string::npos) {
-                    position        = path.find('/', position) + 1;
-                    auto folderName = path.substr(0, position);
-
-                    // ===== If folderName isn't registered in the archive, add it.
-                    if (std::find(folders.begin(), folders.end(), folderName) == folders.end()) {
-                        m_zipEntryData.emplace_back(ZipEntryProxy(&m_archive, createInfo(folderName)));
-                    }
-                }
-
-                // ===== Create a new entry and return the reference
-                if (result != m_zipEntryData.end()) {
-                    *result = ZipEntryWrapper(ZipEntryProxy(&m_archive, createInfo(path)));
-                    return result->entry();
-                }
-                return m_zipEntryData.emplace_back(ZipEntryProxy(&m_archive, createInfo(path))).entry();
-            }
+            ZipEntryProxy& addEntry(const std::string& path);
 
             /**
              * @brief
              * @param name
              */
-            inline void deleteEntry(const std::string& name)
-            {
-                if (!isOpen()) throw ZipLogicError("Function call: deleteEntry(). Archive is invalid or not open!");
-
-                // ===== When saving, only the entries present in the vector will be saved or copied from the original file.
-                m_zipEntryData.erase(std::remove_if(m_zipEntryData.begin(),
-                                                    m_zipEntryData.end(),
-                                                    [&](const ZipEntryWrapper& entry) { return strcmp(name.c_str(), entry.entry().stats().m_filename) == 0; }),
-                                     m_zipEntryData.end());
-            }
+            void deleteEntry(const std::string& name);
 
             /**
              * @brief
              * @param path
              * @return
              */
-            inline ZipEntryProxy& entry(const std::string& path)
-            {
-                if (!isOpen()) throw ZipLogicError("Cannot get entry from empty ZipArchive object!");
-
-                // ===== Look up file_stat object.
-                auto stats = std::find_if(m_zipEntryData.begin(), m_zipEntryData.end(), [&](const ZipEntryWrapper& data) {
-                    return strcmp(path.c_str(), data.entry().stats().m_filename) == 0;
-                });
-
-                if (stats == m_zipEntryData.end()) throw ZipLogicError("KZip Error: Entry '" + path + "' does not exist");
-
-                return stats->entry();
-            }
+            ZipEntryProxy& entry(const std::string& path);
 
             /**
              * @brief
              * @param path
              * @return
              */
-            inline const ZipEntryProxy& entry(const std::string& path) const
-            {
-                if (!isOpen()) throw ZipLogicError("Cannot get entry from empty ZipArchive object!");
-
-                // ===== Look up file_stat object.
-                auto stats = std::find_if(m_zipEntryData.begin(), m_zipEntryData.end(), [&](const ZipEntryWrapper& data) {
-                    return strcmp(path.c_str(), data.entry().stats().m_filename) == 0;
-                });
-
-                if (stats == m_zipEntryData.end()) throw ZipLogicError("KZip Error: Entry '" + path + "' does not exist");
-
-                return stats->entry();
-            }
-
-//            inline void extract(const fs::path& destination, const std::string& entryName) {
-//
-//            }
-
-
+            const ZipEntryProxy& entry(const std::string& path) const;
 
             /**
              * @brief Get a list of the entries in the archive. Depending on the input parameters, the list will include
@@ -845,10 +658,7 @@ namespace KZip
              * included.
              * @return A std::vector of std::strings with the entry names.
              */
-            inline std::vector<std::string> entryNames(ZipFlags flags) const
-            {
-                return entryNames("", flags);
-            }
+            std::vector<std::string> entryNames(ZipFlags flags) const;
 
             /**
              * @brief
@@ -856,43 +666,14 @@ namespace KZip
              * @param flags
              * @return
              */
-            inline std::vector<std::string> entryNames(const std::string& path, ZipFlags flags) const
-            {
-                if (!isOpen()) throw ZipLogicError("Function call: entryNames(). Archive is invalid or not open!");
-
-                std::vector<std::string> result;
-
-                // ===== Iterate through all the entries in the archive
-                for (const auto& item : m_zipEntryData) {
-                    // ===== If directories should be included and the current entry is a directory, add it to the result.
-                    if (path.empty() ||
-                        (strlen(item.entry().stats().m_filename) >= path.size() &&
-                         std::string_view(item.entry().stats().m_filename, path.size()) == path))
-                    {
-                        if (static_cast<bool>(flags & ZipFlags::Directories) && item.entry().stats().m_is_directory) {
-                            result.emplace_back(item.entry().stats().m_filename);
-                            continue;
-                        }
-
-                        // ===== If files should be included and the current entry is a file, add it to the result.
-                        if (static_cast<bool>(flags & ZipFlags::Files) && !item.entry().stats().m_is_directory) {
-                            result.emplace_back(item.entry().stats().m_filename);
-                            continue;
-                        }
-                    }
-                }
-
-                return result;
-            }
+            std::vector<std::string> entryNames(const std::string& path, ZipFlags flags) const;
 
             /**
              * @brief
              * @param flags
              * @return
              */
-            inline uint16_t entryCount(ZipFlags flags = (ZipFlags::Files)) const {
-                return entryCount("", flags);
-            }
+            uint16_t entryCount(ZipFlags flags = (ZipFlags::Files)) const;
 
             /**
              * @brief
@@ -900,43 +681,26 @@ namespace KZip
              * @param flags
              * @return
              */
-            inline uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const {
-                return entryNames(path, flags).size();
-            }
+            uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const;
 
             /**
              * @brief
              * @param entryName
              * @return
              */
-            inline bool hasEntry(const std::string& entryName) const
-            {
-                if (!isOpen()) throw ZipLogicError("Cannot call HasEntry on empty ZipArchive object!");
-
-                return std::find_if(m_zipEntryData.begin(), m_zipEntryData.end(), [&](const ZipEntryWrapper& data) {
-                           return strcmp(entryName.c_str(), data.entry().stats().m_filename) == 0;
-                       }) != m_zipEntryData.end();    // NOLINT
-            }
+            bool hasEntry(const std::string& entryName) const;
 
             /**
              * @brief Close the archive for reading and writing.
              * @note If the archive has been modified but not saved, all changes will be discarded.
              */
-            inline void close()
-            {
-                if (isOpen()) {
-                    mz_zip_reader_end(&m_archive);
-                }
-                m_zipEntryData.clear();
-                m_archivePath.clear();
-                m_isOpen = false;
-            }
+            void close();
 
             /**
              * @brief Checks if the archive file is open for reading and writing.
              * @return true if it is open; otherwise false;
              */
-            inline bool isOpen() const { return m_isOpen; }
+            bool isOpen() const;
 
             /**
              * @brief Save the archive with a new name. The original archive will remain unchanged.
@@ -944,74 +708,7 @@ namespace KZip
              * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
              * @throws ZipException A ZipException object is thrown if calls to miniz function fails.
              */
-            inline void save(fs::path filename = {})
-            {
-                if (!isOpen()) throw ZipLogicError("Function call: save(). Archive is invalid or not open!");
-
-                if (filename.empty()) {
-                    filename = m_archivePath;
-                }
-
-                // ===== Lambda function for generating a gandom filename
-                auto generateRandomName = []() {
-                    static const std::string letters = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-                    std::random_device                          rand_dev;
-                    std::mt19937                                generator(rand_dev());
-                    std::uniform_int_distribution<unsigned int> distr(0, letters.size() - 1);
-
-                    std::string result = ".~$";
-                    for (int i = 0; i < 12; ++i) {    // NOLINT
-                        result += letters[distr(generator)];
-                    }
-
-                    return result + ".tmp";
-                };
-
-                // ===== Generate a random file name with the same path as the current file
-                fs::path tempPath = filename.parent_path() /= generateRandomName();
-
-                // ===== Prepare an temporary archive file with the random filename;
-                mz_zip_archive tempArchive = mz_zip_archive();
-                mz_zip_writer_init_file(&tempArchive, tempPath.string().c_str(), 0);
-
-                // ===== Iterate through the ZipEntries and add entries to the temporary file
-                for (auto& entry : m_zipEntryData) {
-                    if (entry.entry().stats().m_is_directory) continue;
-                    if (!entry.entry().isUpdated()) {
-                        if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_archive, entry.entry().stats().m_file_index)) {
-                            throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
-                        }
-                    }
-
-                    else {
-                        if (!mz_zip_writer_add_mem(&tempArchive,
-                                                   entry.entry().stats().m_filename,    // NOLINT
-                                                   entry.entry().rawData().data(),
-                                                   entry.entry().rawData().size(),
-                                                   MZ_DEFAULT_COMPRESSION))
-                        {
-                            throw ZipRuntimeError(mz_zip_get_error_string(m_archive.m_last_error));
-                        }
-                    }
-                }
-
-                // ===== Finalize and close the temporary archive
-                mz_zip_writer_finalize_archive(&tempArchive);
-                mz_zip_writer_end(&tempArchive);
-
-                // ===== Validate the temporary file
-                mz_zip_error errordata = {};
-                if (!mz_zip_validate_file_archive(tempPath.string().c_str(), 0, &errordata)) {
-                    throw ZipRuntimeError(mz_zip_get_error_string(errordata));
-                }
-
-                // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
-                close();
-                nowide::remove(filename.string().c_str());                      // NOLINT
-                nowide::rename(tempPath.string().c_str(), filename.string().c_str());    // NOLINT
-                open(filename);
-            }
+            void save(fs::path filename = {});
 
         private:
             /**
@@ -1022,38 +719,7 @@ namespace KZip
              * @param name The file name for the new ZipEntryInfo.
              * @return The newly created ZipEntryInfo structure is returned
              */
-            inline mz_zip_archive_file_stat createInfo(const std::string& name)
-            {
-                mz_zip_archive_file_stat info;
-
-                info.m_file_index       = ++m_currentIndex;
-                info.m_central_dir_ofs  = 0;
-                info.m_version_made_by  = 0;
-                info.m_version_needed   = 0;
-                info.m_bit_flag         = 0;
-                info.m_method           = 0;
-                info.m_time             = std::time(nullptr);
-                info.m_crc32            = 0;
-                info.m_comp_size        = 0;
-                info.m_uncomp_size      = 0;
-                info.m_internal_attr    = 0;
-                info.m_external_attr    = 0;
-                info.m_local_header_ofs = 0;
-                info.m_comment_size     = 0;
-                info.m_is_directory     = (name.back() == '/');
-                info.m_is_encrypted     = false;
-                info.m_is_supported     = true;
-
-#if _MSC_VER    // On MSVC, use the safe version of strcpy
-                strcpy_s(info.m_filename, sizeof info.m_filename, name.c_str());
-                strcpy_s(info.m_comment, sizeof info.m_comment, "");
-#else    // Otherwise, use the unsafe version as fallback :(
-                strncpy(info.m_filename, name.c_str(), sizeof info.m_filename);    // NOLINT
-                strncpy(info.m_comment, "", sizeof info.m_comment);                // NOLINT
-#endif
-
-                return info;
-            }
+            mz_zip_archive_file_stat createInfo(const std::string& name);
 
             mz_zip_archive    m_archive      = mz_zip_archive(); /**< The struct used by miniz, to handle archive files. */
             std::vector<ZipEntryWrapper> m_zipEntryData = {};
@@ -1116,7 +782,7 @@ namespace KZip
          * @warning Before using an archive object that has been default constructed, a call to either Open() or Create() must be
          * performed. Otherwise, the object will be in a null-state and calls to member functions will be undefined.
          */
-        ZipArchive() = default;
+        ZipArchive();
 
         /**
          * @brief Constructor. Constructs an archive object, using the fileName input parameter. If the file already exists,
@@ -1127,15 +793,7 @@ namespace KZip
          * and will be opened. Otherwise, the file does not exist and will be created.
          * @param fileName The name of the file to open or create.
          */
-        explicit ZipArchive(const fs::path& fileName)
-        {
-            // ===== If successful, continue to open the file.
-            if (fs::exists(fileName)) open(fileName);
-
-            // ===== If unsuccessful, create the archive file and continue.
-            else
-                create(fileName);
-        }
+        explicit ZipArchive(const fs::path& fileName);
 
         /**
          * @brief Copy Constructor (deleted).
@@ -1149,14 +807,14 @@ namespace KZip
          * @brief Move Constructor.
          * @param other The object to be moved.
          */
-        ZipArchive(ZipArchive&& other) = default;
+        ZipArchive(ZipArchive&& other) noexcept;
 
         /**
          * @brief Destructor.
          * @note The destructor will call the Close() member function. If the archive has been modified but not saved,
          * all changes will be discarded.
          */
-        virtual ~ZipArchive() { close(); }
+        ~ZipArchive();
 
         /**
          * @brief Copy Assignment Operator (deleted)
@@ -1173,7 +831,7 @@ namespace KZip
          * @param other The object to be moved.
          * @return A reference to the moved-to object.
          */
-        ZipArchive& operator=(ZipArchive&& other) = default;
+        ZipArchive& operator=(ZipArchive&& other) noexcept;
 
         /**
          * @brief Creates a new (empty) archive file with the given filename.
@@ -1183,7 +841,7 @@ namespace KZip
          * After ensuring that the file is valid (i.e. not somehow corrupted), it is opened using the Open() member function.
          * @param fileName The filename for the new archive.
          */
-        inline void create(const fs::path& fileName) { m_archive->create(fileName); }
+        void create(const fs::path& fileName);
 
         /**
          * @brief Open an existing archive file with the given filename.
@@ -1194,19 +852,19 @@ namespace KZip
          * @note If more than one entry with the same name exists in the archive, only the newest one will be loaded.
          * When saving the archive, only the loaded entries will be kept; other entries with the same name will be deleted.
          */
-        inline void open(const fs::path& fileName) { m_archive->open(fileName); }
+        void open(const fs::path& fileName);
 
         /**
          * @brief Close the archive for reading and writing.
          * @note If the archive has been modified but not saved, all changes will be discarded.
          */
-        inline void close() { m_archive->close(); }
+        void close();
 
         /**
          * @brief Checks if the archive file is open for reading and writing.
          * @return true if it is open; otherwise false;
          */
-        inline bool isOpen() const { return m_archive->isOpen(); }
+        bool isOpen() const;
 
         /**
          * @brief Get a list of the entries in the archive. Depending on the input parameters, the list will include
@@ -1215,10 +873,7 @@ namespace KZip
          * @param includeFiles If true, the list will include files; otherwise not. Default is true
          * @return A std::vector of std::strings with the entry names.
          */
-        inline std::vector<std::string> entryNames(ZipFlags flags = (ZipFlags::Files)) const
-        {
-            return m_archive->entryNames(flags);
-        }
+        std::vector<std::string> entryNames(ZipFlags flags = (ZipFlags::Files)) const;
 
         /**
          * @brief
@@ -1226,20 +881,17 @@ namespace KZip
          * @param flags
          * @return
          */
-        inline std::vector<std::string> entryNames(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const
-        {
-            return m_archive->entryNames(path, flags);
-        }
+        std::vector<std::string> entryNames(const std::string& path, ZipFlags flags = (ZipFlags::Files)) const;
 
         /**
          * @brief
          * @param flags
          * @return
          */
-        inline uint16_t entryCount(ZipFlags flags = (ZipFlags::Files))
-        {
-            return m_archive->entryCount(flags);
-        }
+        uint16_t entryCount(ZipFlags flags = (ZipFlags::Files));
+//        {
+//            return m_archive->entryCount(flags);
+//        }
 
         /**
          * @brief
@@ -1247,17 +899,14 @@ namespace KZip
          * @param flags
          * @return
          */
-        inline uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files))
-        {
-            return m_archive->entryCount(path, flags);
-        }
+        uint16_t entryCount(const std::string& path, ZipFlags flags = (ZipFlags::Files));
 
         /**
          * @brief Check if an entry with a given name exists in the archive.
          * @param entryName The name of the entry to check for.
          * @return true if it exists; otherwise false;
          */
-        inline bool hasEntry(const std::string& entryName) const { return m_archive->hasEntry(entryName); }
+        bool hasEntry(const std::string& entryName) const;
 
         /**
          * @brief Save the archive with a new name. The original archive will remain unchanged.
@@ -1265,26 +914,22 @@ namespace KZip
          * @note If no filename is provided, the file will be saved with the existing name, overwriting any existing data.
          * @throws ZipException A ZipException object is thrown if calls to miniz function fails.
          */
-        inline void save(const fs::path& filename = "") { m_archive->save(filename); }
+        void save(const fs::path& filename = {});
 
         /**
          * @brief Deletes an entry from the archive.
          * @param name The name of the entry to delete.
          */
-        inline void deleteEntry(const std::string& name) { m_archive->deleteEntry(name); }
+        void deleteEntry(const std::string& name);
 
         /**
          *
          * @param path
          * @return
          */
-        inline ZipEntryProxy& entry(const std::string& path) { return m_archive->entry(path); }
+        ZipEntryProxy& entry(const std::string& path);
 
-        inline const ZipEntryProxy& entry(const std::string& path) const { return m_archive->entry(path); }
-
-        //        inline void extractEntry(const std::string& name, const std::string& dest)
-        //        inline void extractDir(const std::string& dir, const std::string& dest)
-        //        inline void extractAll(const std::string& dest)
+        const ZipEntryProxy& entry(const std::string& path) const;
 
         /**
          * @brief Add a new entry to the archive.
@@ -1293,33 +938,7 @@ namespace KZip
          * @return The ZipEntry object that has been added to the archive.
          * @note If an entry with given name already exists, it will be overwritten.
          */
-        inline ZipEntryProxy& addEntry(const std::string& name)
-        {
-            //            return addEntryImpl(name, data);
-            return m_archive->addEntry(name);
-        }
-
-        /**
-         * @brief Add a new entry to the archive.
-         * @param name The name of the entry to add.
-         * @param data The std::string data to add.
-         * @return The ZipEntry object that has been added to the archive.
-         * @note If an entry with given name already exists, it will be overwritten.
-         */
-//        inline void addEntry(const std::string& name, const std::string& data) { m_archive->addEntry(name, { data.begin(), data.end() }); }
-
-        /**
-         * @brief Add a new entry to the archive, using another entry as input. This is mostly used for cloning existing entries
-         * in the same archive, or for copying entries from one archive to another.
-         * @param name The name of the entry to add.
-         * @param entry The ZipEntry to add.
-         * @return The ZipEntry object that has been added to the archive.
-         * @note If an entry with given name already exists, it will be overwritten.
-         */
-//        inline void addEntry(const std::string& name, const ZipEntry& entry)
-//        {
-//            //            return addEntryImpl(name, entry.data());
-//        }
+        ZipEntryProxy& addEntry(const std::string& name);
 
     private:
         std::unique_ptr<Impl::ZipArchive> m_archive = std::make_unique<Impl::ZipArchive>();
