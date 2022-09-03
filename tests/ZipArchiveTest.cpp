@@ -460,31 +460,296 @@ TEST_CASE("TEST 4: ZipEntry & ZipEntryProxy Created from Existing Archive") {
     KZip::ZipArchive archive("./CreatedWithWinZip.zip");
     REQUIRE(archive.isOpen());
 
-    SECTION("#01: Check Contents of 'file 1.txt' using ZipEntryProxy") {
+    SECTION("#01: Check Contents of 'file 1.txt' using ZipEntryProxy")
+    {
         REQUIRE(archive.entry("file 1.txt").name() == "file 1.txt");
-        REQUIRE(archive.entry("file 1.txt") == txtdata);
-        REQUIRE_FALSE(archive.entry("file 1.txt") == std::string("dummy string"));
+        REQUIRE(archive.entry("file 2.txt").name() == "file 2.txt");
+        REQUIRE(archive.entry("file 3.txt").name() == "file 3.txt");
+        REQUIRE(archive.entry("file 4.txt").name() == "file 4.txt");
+        REQUIRE(archive.entry("file 5.txt").name() == "file 5.txt");
+        REQUIRE(archive.entry("Folder 2/file 1.txt").name() == "Folder 2/file 1.txt");
+        REQUIRE(archive.entry("Folder 2/file 2.txt").name() == "Folder 2/file 2.txt");
+        REQUIRE(archive.entry("Folder 2/file 3.txt").name() == "Folder 2/file 3.txt");
+        REQUIRE(archive.entry("Folder 2/file 4.txt").name() == "Folder 2/file 4.txt");
+        REQUIRE(archive.entry("Folder 2/file 5.txt").name() == "Folder 2/file 5.txt");
 
+        REQUIRE_FALSE(archive.entry("file 1.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("file 2.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("file 3.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("file 4.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("file 5.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/file 1.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/file 2.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/file 3.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/file 4.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/file 5.txt").name() == "Folder 2/wrong name.txt");
+
+        REQUIRE(archive.entry("file 1.txt") == txtdata);
+        REQUIRE(archive.entry("file 2.txt") == txtdata);
+        REQUIRE(archive.entry("file 3.txt") == txtdata);
+        REQUIRE(archive.entry("file 4.txt") == txtdata);
+        REQUIRE(archive.entry("file 5.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/file 1.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/file 2.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/file 3.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/file 4.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/file 5.txt") == txtdata);
+
+        REQUIRE_FALSE(archive.entry("file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("file 5.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/file 5.txt") == std::string("dummy string"));
+    }
+
+    SECTION("#02: Rename file entries using ZipEntryProxy") {
         archive.entry("file 1.txt").setName("other file 1.txt");
+        archive.entry("file 2.txt").setName("other file 2.txt");
+        archive.entry("file 3.txt").setName("other file 3.txt");
+        archive.entry("file 4.txt").setName("other file 4.txt");
+        archive.entry("file 5.txt").setName("other file 5.txt");
+        archive.entry("Folder 2/file 1.txt").setName("Folder 2/other file 1.txt");
+        archive.entry("Folder 2/file 2.txt").setName("Folder 2/other file 2.txt");
+        archive.entry("Folder 2/file 3.txt").setName("Folder 2/other file 3.txt");
+        archive.entry("Folder 2/file 4.txt").setName("Folder 2/other file 4.txt");
+        archive.entry("Folder 2/file 5.txt").setName("Folder 2/other file 5.txt");
 
         REQUIRE(archive.hasEntry("other file 1.txt"));
-        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
-        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
-        REQUIRE(archive.entry("other file 1.txt") == txtdata);
-        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
+        REQUIRE(archive.hasEntry("other file 2.txt"));
+        REQUIRE(archive.hasEntry("other file 3.txt"));
+        REQUIRE(archive.hasEntry("other file 4.txt"));
+        REQUIRE(archive.hasEntry("other file 5.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 1.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 2.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 3.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 4.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 5.txt"));
 
-        archive.save();
+        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 5.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 5.txt"));
+
+        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
+        REQUIRE(archive.entry("other file 2.txt").name() == "other file 2.txt");
+        REQUIRE(archive.entry("other file 3.txt").name() == "other file 3.txt");
+        REQUIRE(archive.entry("other file 4.txt").name() == "other file 4.txt");
+        REQUIRE(archive.entry("other file 5.txt").name() == "other file 5.txt");
+        REQUIRE(archive.entry("Folder 2/other file 1.txt").name() == "Folder 2/other file 1.txt");
+        REQUIRE(archive.entry("Folder 2/other file 2.txt").name() == "Folder 2/other file 2.txt");
+        REQUIRE(archive.entry("Folder 2/other file 3.txt").name() == "Folder 2/other file 3.txt");
+        REQUIRE(archive.entry("Folder 2/other file 4.txt").name() == "Folder 2/other file 4.txt");
+        REQUIRE(archive.entry("Folder 2/other file 5.txt").name() == "Folder 2/other file 5.txt");
+
+        REQUIRE_FALSE(archive.entry("other file 1.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 2.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 3.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 4.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 5.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 1.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 2.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 3.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 4.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 5.txt").name() == "Folder 2/wrong name.txt");
+
+        REQUIRE(archive.entry("other file 1.txt") == txtdata);
+        REQUIRE(archive.entry("other file 2.txt") == txtdata);
+        REQUIRE(archive.entry("other file 3.txt") == txtdata);
+        REQUIRE(archive.entry("other file 4.txt") == txtdata);
+        REQUIRE(archive.entry("other file 5.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 1.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 2.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 3.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 4.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 5.txt") == txtdata);
+
+        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 5.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 5.txt") == std::string("dummy string"));
+
+        archive.save("./CreatedWithWinZip_output.zip");
+        archive.close();
+        archive.open("./CreatedWithWinZip_output.zip");
+
+        REQUIRE(archive.hasEntry("other file 1.txt"));
+        REQUIRE(archive.hasEntry("other file 2.txt"));
+        REQUIRE(archive.hasEntry("other file 3.txt"));
+        REQUIRE(archive.hasEntry("other file 4.txt"));
+        REQUIRE(archive.hasEntry("other file 5.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 1.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 2.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 3.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 4.txt"));
+        REQUIRE(archive.hasEntry("Folder 2/other file 5.txt"));
+
+        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("file 5.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 5.txt"));
+
+        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
+        REQUIRE(archive.entry("other file 2.txt").name() == "other file 2.txt");
+        REQUIRE(archive.entry("other file 3.txt").name() == "other file 3.txt");
+        REQUIRE(archive.entry("other file 4.txt").name() == "other file 4.txt");
+        REQUIRE(archive.entry("other file 5.txt").name() == "other file 5.txt");
+        REQUIRE(archive.entry("Folder 2/other file 1.txt").name() == "Folder 2/other file 1.txt");
+        REQUIRE(archive.entry("Folder 2/other file 2.txt").name() == "Folder 2/other file 2.txt");
+        REQUIRE(archive.entry("Folder 2/other file 3.txt").name() == "Folder 2/other file 3.txt");
+        REQUIRE(archive.entry("Folder 2/other file 4.txt").name() == "Folder 2/other file 4.txt");
+        REQUIRE(archive.entry("Folder 2/other file 5.txt").name() == "Folder 2/other file 5.txt");
+
+        REQUIRE_FALSE(archive.entry("other file 1.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 2.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 3.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 4.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("other file 5.txt").name() == "wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 1.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 2.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 3.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 4.txt").name() == "Folder 2/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 5.txt").name() == "Folder 2/wrong name.txt");
+
+        REQUIRE(archive.entry("other file 1.txt") == txtdata);
+        REQUIRE(archive.entry("other file 2.txt") == txtdata);
+        REQUIRE(archive.entry("other file 3.txt") == txtdata);
+        REQUIRE(archive.entry("other file 4.txt") == txtdata);
+        REQUIRE(archive.entry("other file 5.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 1.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 2.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 3.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 4.txt") == txtdata);
+        REQUIRE(archive.entry("Folder 2/other file 5.txt") == txtdata);
+
+        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("other file 5.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder 2/other file 5.txt") == std::string("dummy string"));
+
+        // ===== Cleanup...
+        archive.close();
+        archive.open("./CreatedWithWinZip.zip");
+    }
+
+    SECTION("#03: Rename folder entry using ZipEntryProxy") {
+
+        archive.entry("Folder 2/").setName("Folder X/");
+
+        REQUIRE(archive.hasEntry("Folder X/"));
+        REQUIRE(archive.hasEntry("Folder X/file 1.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 2.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 3.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 4.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 5.txt"));
+
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 5.txt"));
+
+        REQUIRE(archive.entry("Folder X/file 1.txt").name() == "Folder X/file 1.txt");
+        REQUIRE(archive.entry("Folder X/file 2.txt").name() == "Folder X/file 2.txt");
+        REQUIRE(archive.entry("Folder X/file 3.txt").name() == "Folder X/file 3.txt");
+        REQUIRE(archive.entry("Folder X/file 4.txt").name() == "Folder X/file 4.txt");
+        REQUIRE(archive.entry("Folder X/file 5.txt").name() == "Folder X/file 5.txt");
+
+        REQUIRE_FALSE(archive.entry("Folder X/file 1.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 2.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 3.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 4.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 5.txt").name() == "Folder X/wrong name.txt");
+
+        REQUIRE(archive.entry("Folder X/file 1.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 2.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 3.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 4.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 5.txt") == txtdata);
+
+        REQUIRE_FALSE(archive.entry("Folder X/file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 5.txt") == std::string("dummy string"));
+
+        archive.save("./CreatedWithWinZip_output.zip");
+        archive.close();
+        archive.open("./CreatedWithWinZip_output.zip");
+
+        archive.entry("Folder X/");
+//        REQUIRE(archive.hasEntry("Folder X/"));
+        REQUIRE(archive.hasEntry("Folder X/file 1.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 2.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 3.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 4.txt"));
+        REQUIRE(archive.hasEntry("Folder X/file 5.txt"));
+
+//        REQUIRE_FALSE(archive.hasEntry("Folder 2/"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 1.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 2.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 3.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 4.txt"));
+        REQUIRE_FALSE(archive.hasEntry("Folder 2/file 5.txt"));
+
+        REQUIRE(archive.entry("Folder X/file 1.txt").name() == "Folder X/file 1.txt");
+        REQUIRE(archive.entry("Folder X/file 2.txt").name() == "Folder X/file 2.txt");
+        REQUIRE(archive.entry("Folder X/file 3.txt").name() == "Folder X/file 3.txt");
+        REQUIRE(archive.entry("Folder X/file 4.txt").name() == "Folder X/file 4.txt");
+        REQUIRE(archive.entry("Folder X/file 5.txt").name() == "Folder X/file 5.txt");
+
+        REQUIRE_FALSE(archive.entry("Folder X/file 1.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 2.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 3.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 4.txt").name() == "Folder X/wrong name.txt");
+        REQUIRE_FALSE(archive.entry("Folder X/file 5.txt").name() == "Folder X/wrong name.txt");
+
+        REQUIRE(archive.entry("Folder X/file 1.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 2.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 3.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 4.txt") == txtdata);
+        REQUIRE(archive.entry("Folder X/file 5.txt") == txtdata);
+
+        REQUIRE_FALSE(archive.entry("Folder X/file 1.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 2.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 3.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 4.txt") == std::string("dummy string"));
+        REQUIRE_FALSE(archive.entry("Folder X/file 5.txt") == std::string("dummy string"));
+
+        // ===== Cleanup...
         archive.close();
         archive.open("./CreatedWithWinZip.zip");
 
-        REQUIRE(archive.hasEntry("other file 1.txt"));
-        REQUIRE_FALSE(archive.hasEntry("file 1.txt"));
-        REQUIRE(archive.entry("other file 1.txt").name() == "other file 1.txt");
-        REQUIRE(archive.entry("other file 1.txt") == txtdata);
-        REQUIRE_FALSE(archive.entry("other file 1.txt") == std::string("dummy string"));
-
     }
-
 
 
 }
