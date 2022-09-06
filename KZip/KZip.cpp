@@ -72,19 +72,14 @@ namespace KZip {
 
     ZipEntryProxy& ZipEntryProxy::operator=(const ZipEntryProxy& other) {
         if (&other != this) {
-            *this = other.getData<std::vector<unsigned char>>();
+            *this = other.data<std::vector<unsigned char>>();
         }
 
         return *this;
     };
 
     ZipEntryProxy::operator ZipEntry() { // NOLINT
-        return {getData<std::vector<unsigned char>>(), m_mzinfo };
-    }
-
-    void ZipEntryProxy::clear()
-    {
-        // TODO(troldal): To be implemented
+        return { data<std::vector<unsigned char>>(), m_mzinfo };
     }
 
     std::string_view ZipEntryProxy::name() const {
@@ -96,14 +91,14 @@ namespace KZip {
      */
     void ZipEntryProxy::setName(const std::string& entryname)
     {
-        // ===== The entryname must not be empty. If it is, throw an exception.
-        if (entryname.empty()) throw ZipLogicError("Entry name must not be empty");
-
         // ===== If the entryname is the same as the current name, do nothing.
         if (name() == entryname) return;
 
+        // ===== The entryname must not be empty. If it is, throw an exception.
+        if (entryname.empty()) throw ZipLogicError("Entry name must not be empty");
+
         // ===== If another entry with the entryname exists, delete it.
-        if (m_ziparchive->hasEntry(entryname)) m_ziparchive->deleteEntry(entryname);
+        if (m_ziparchive->hasEntry(entryname)) throw ZipLogicError("Entry name already exists");
 
         // ===== If the entry is a folder, iterate through the contents and rename each file.
         if (metadata().isDirectory()) {
@@ -124,7 +119,7 @@ namespace KZip {
         // ===== If internal data structure is empty, retrieve the data from the zip file, ad add it.
         // ===== This is required, because miniz does not support changing the name. Therefore, it must be
         // ===== copied and added with the new name.
-        if (!m_data.has_value()) *this = getData<std::vector<unsigned char>>();
+        if (!m_data.has_value()) *this = data<std::vector<unsigned char>>();
     }
 
     /*
@@ -235,11 +230,17 @@ namespace KZip::Impl {
         std::reverse(m_zipEntryData.begin(), m_zipEntryData.end());
 
         // ===== Add folder entries if they don't exist
-        for (auto& entry : entryNames(ZipFlags::Directories)) {
-            if (entry.find('/') != std::string::npos) {
-                addEntry(entry.substr(0, entry.rfind('/') + 1));
-            }
+        auto names = entryNames(ZipFlags::Files);
+        auto folders = std::set<std::string> {};
+        for (auto& entry : names) {
+            std::stringstream sstream(entry);
+            std::string segment {};
+            std::vector<std::string> segments {};
+            while (std::getline(sstream, segment, '/')) segments.push_back(segment + '/');
+            if (!segments.empty()) segments.pop_back();
+            for (const auto& seg : segments) folders.insert(seg);
         }
+        for (const auto& f : folders) addEntry(f);
     }
 
     ZipEntryProxy& ZipArchiveImpl::addEntry(const std::string& path)
@@ -341,11 +342,10 @@ namespace KZip::Impl {
 
         // ===== Iterate through all the entries in the archive
         for (const auto& item : m_zipEntryData) {
-            // ===== If directories should be included and the current entry is a directory, add it to the result.
-            if (path.empty() ||
-                (strlen(item.get().stats().m_filename) >= path.size() &&
-                 std::string_view(item.get().stats().m_filename, path.size()) == path))
+            if (path.empty() || (strlen(item.get().stats().m_filename) >= path.size() &&
+                                 std::string_view(item.get().stats().m_filename, path.size()) == path))
             {
+                // ===== If directories should be included and the current entry is a directory, add it to the result.
                 if (static_cast<bool>(flags & ZipFlags::Directories) && item.get().stats().m_is_directory) {
                     result.emplace_back(item.get().stats().m_filename);
                     continue;

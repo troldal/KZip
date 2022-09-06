@@ -25,6 +25,8 @@
 #include <memory>
 #include <optional>
 #include <random>
+#include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -43,7 +45,7 @@ namespace KZip
 
     /**
      * @brief The ZipRuntimeError class is a custom exception class derived from the std::runtime_error class.
-     * @details In case of an error in the KZip KZip, a ZipRuntimeError object will be thrown, with a message
+     * @details In case of an error in KZip, a ZipRuntimeError object will be thrown, with a message
      * describing the details of the error.
      */
     class ZipRuntimeError : public std::runtime_error
@@ -159,32 +161,32 @@ namespace KZip
          * @brief
          * @param other
          */
-        ZipEntry(const ZipEntry& other);// = default;
+        ZipEntry(const ZipEntry& other);
 
         /**
          * @brief
          * @param other
          */
-        ZipEntry(ZipEntry&& other) noexcept;// = default;
-
-        /**
-         * @brief
-         * @param other
-         * @return
-         */
-        ZipEntry& operator=(const ZipEntry& other);// = default;
+        ZipEntry(ZipEntry&& other) noexcept;
 
         /**
          * @brief
          * @param other
          * @return
          */
-        ZipEntry& operator=(ZipEntry&& other) noexcept;// = default;
+        ZipEntry& operator=(const ZipEntry& other);
+
+        /**
+         * @brief
+         * @param other
+         * @return
+         */
+        ZipEntry& operator=(ZipEntry&& other) noexcept;
 
         /**
          * @brief
          */
-        ~ZipEntry();// = default;
+        ~ZipEntry();
 
         /**
          * @brief
@@ -353,6 +355,9 @@ namespace KZip
             else {
                 m_data = std::vector<unsigned char> {data.begin(), data.end()};
             }
+
+            m_mzinfo.m_uncomp_size = m_data->size();
+
         }
 
         /**
@@ -366,7 +371,7 @@ namespace KZip
          * @return An object of type T, holding the zip data.
          */
         template<typename T, typename std::enable_if<std::is_convertible_v<typename T::value_type, unsigned char>>::type* = nullptr>
-        T getData() const
+        T data() const
         {
             if (m_data.has_value())
                 return {m_data->begin(), m_data->end()};
@@ -427,10 +432,13 @@ namespace KZip
          * @tparam T The type to convert to (e.g. std::string or std::vector<unsigned char>
          * @return An object of type T, holding the zip data.
          */
-        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename T::value_type>>::type* = nullptr>
+        template<typename T, typename std::enable_if<std::is_convertible_v<unsigned char, typename std::decay_t<T>::value_type> &&
+                                                     !std::is_same_v<std::string_view, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::allocator<typename std::decay_t<T>::value_type>, std::decay_t<T> > &&
+                                                     !std::is_same_v<std::initializer_list<typename std::decay_t<T>::value_type>, std::decay_t<T> > >::type* = nullptr>
         operator T() const // NOLINT
         {
-            return getData<T>();
+            return data<T>();
         }
 
         /**
@@ -438,11 +446,6 @@ namespace KZip
          * @return
          */
         operator ZipEntry(); // NOLINT
-
-        /**
-         * @brief
-         */
-        void clear();
 
         /**
          * @brief
@@ -473,9 +476,9 @@ namespace KZip
                                                      std::is_same_v<std::decay_t<T>, char*> >::type* = nullptr>
         bool operator==(const T& other) const // NOLINT
         {
-            auto data = getData<T>();
-            auto result = std::mismatch(other.begin(), other.end(), data.begin());
-            return (result.first == other.end() || result.second == data.end());
+            auto thedata = data<T>();
+            auto result = std::mismatch(other.begin(), other.end(), thedata.begin());
+            return (result.first == other.end() || result.second == thedata.end());
         }
 
     private:

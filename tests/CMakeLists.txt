@@ -77,17 +77,17 @@ endif ()
 #=======================================================================================================================
 # Enable code coverage
 #=======================================================================================================================
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT WIN32)
-    target_compile_options(KZipTests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-    target_link_options(KZipTests PRIVATE -fprofile-instr-generate)
-    #Uncomment in case of linker errors
-    #link_libraries(clang_rt.profile-x86_64)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    target_compile_options(KZipTests PRIVATE --coverage)
-    target_link_options(KZipTests PRIVATE --coverage)
-    #Uncomment in case of linker errors
-    #link_libraries(gcov)
-endif ()
+#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT WIN32)
+#    target_compile_options(KZipTests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+#    target_link_options(KZipTests PRIVATE -fprofile-instr-generate)
+#    #Uncomment in case of linker errors
+#    #link_libraries(clang_rt.profile-x86_64)
+#elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#    target_compile_options(KZipTests PRIVATE --coverage)
+#    target_link_options(KZipTests PRIVATE --coverage)
+#    #Uncomment in case of linker errors
+#    #link_libraries(gcov)
+#endif ()
 
 # Consider making them optional
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=leak")
